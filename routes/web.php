@@ -35,6 +35,11 @@ Route::middleware(['auth'])->group(function () {
     // Menus routes (accessible by admin only)
     Route::middleware(['admin'])->resource('menus', \App\Http\Controllers\MenuController::class);
     Route::middleware(['admin'])->post('menus/{menu}/toggle-availability', [\App\Http\Controllers\MenuController::class, 'toggleAvailability'])->name('menus.toggle-availability');
+    
+    // Orders routes (accessible by kasir and admin)
+    Route::resource('orders', \App\Http\Controllers\OrderController::class);
+    Route::post('orders/{order}/update-status', [\App\Http\Controllers\OrderController::class, 'updateStatus'])->name('orders.update-status');
+    Route::get('orders/{order}/print', [\App\Http\Controllers\OrderController::class, 'print'])->name('orders.print');
 
     // Kasir routes
     Route::middleware(['kasir'])->prefix('kasir')->name('kasir.')->group(function () {
