@@ -1,4 +1,8 @@
-<x-admin-layout>
+@if(auth()->user()->role === 'admin')
+    <x-admin-layout>
+@else
+    <x-kasir-layout>
+@endif
     <x-slot name="header">
         <div class="flex justify-between items-center">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
@@ -12,6 +16,15 @@
                     <a href="{{ route('orders.edit', $order) }}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2">
                         Edit
                     </a>
+                    @if(auth()->user()->role === 'admin')
+                        <form action="{{ route('orders.destroy', $order) }}" method="POST" class="inline mr-2" onsubmit="return confirm('Apakah Anda yakin ingin menghapus pesanan ini?');">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+                                Hapus
+                            </button>
+                        </form>
+                    @endif
                 @endif
                 <a href="{{ route('orders.index') }}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
                     Kembali
@@ -108,4 +121,8 @@
             </div>
         </div>
     </div>
-</x-admin-layout>
+@if(auth()->user()->role === 'admin')
+    </x-admin-layout>
+@else
+    </x-kasir-layout>
+@endif

@@ -8,6 +8,13 @@
                 <a href="{{ route('categories.edit', $category) }}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2">
                     Edit
                 </a>
+                <form action="{{ route('categories.destroy', $category) }}" method="POST" class="inline mr-2" onsubmit="return confirm('Apakah Anda yakin ingin menghapus kategori ini?');">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+                        Hapus
+                    </button>
+                </form>
                 <a href="{{ route('categories.index') }}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
                     Kembali
                 </a>

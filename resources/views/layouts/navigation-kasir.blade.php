@@ -15,6 +15,9 @@
                     <x-nav-link :href="route('kasir.dashboard')" :active="request()->routeIs('kasir.dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('menus.index')" :active="request()->routeIs('menus.*')">
+                        {{ __('Menu') }}
+                    </x-nav-link>
                     <x-nav-link :href="route('orders.index')" :active="request()->routeIs('orders.*')">
                         {{ __('Pesanan') }}
                     </x-nav-link>
@@ -73,6 +76,9 @@
         <div class="pt-2 pb-3 space-y-1">
             <x-responsive-nav-link :href="route('kasir.dashboard')" :active="request()->routeIs('kasir.dashboard')">
                 {{ __('Dashboard') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('menus.index')" :active="request()->routeIs('menus.*')">
+                {{ __('Menu') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('orders.index')" :active="request()->routeIs('orders.*')">
                 {{ __('Pesanan') }}

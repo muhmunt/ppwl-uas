@@ -32,9 +32,18 @@ Route::middleware(['auth'])->group(function () {
     // Categories routes (accessible by admin only)
     Route::middleware(['admin'])->resource('categories', \App\Http\Controllers\CategoryController::class);
     
-    // Menus routes (accessible by admin only)
-    Route::middleware(['admin'])->resource('menus', \App\Http\Controllers\MenuController::class);
-    Route::middleware(['admin'])->post('menus/{menu}/toggle-availability', [\App\Http\Controllers\MenuController::class, 'toggleAvailability'])->name('menus.toggle-availability');
+    // Menus routes
+    Route::middleware(['kasir'])->get('menus', [\App\Http\Controllers\MenuController::class, 'index'])->name('menus.index');
+    Route::middleware(['kasir'])->get('menus/{menu}', [\App\Http\Controllers\MenuController::class, 'show'])->name('menus.show');
+    // Admin only routes for menu management
+    Route::middleware(['admin'])->group(function () {
+        Route::get('menus/create', [\App\Http\Controllers\MenuController::class, 'create'])->name('menus.create');
+        Route::post('menus', [\App\Http\Controllers\MenuController::class, 'store'])->name('menus.store');
+        Route::get('menus/{menu}/edit', [\App\Http\Controllers\MenuController::class, 'edit'])->name('menus.edit');
+        Route::put('menus/{menu}', [\App\Http\Controllers\MenuController::class, 'update'])->name('menus.update');
+        Route::delete('menus/{menu}', [\App\Http\Controllers\MenuController::class, 'destroy'])->name('menus.destroy');
+        Route::post('menus/{menu}/toggle-availability', [\App\Http\Controllers\MenuController::class, 'toggleAvailability'])->name('menus.toggle-availability');
+    });
     
     // Orders routes (accessible by kasir and admin)
     Route::middleware(['kasir'])->resource('orders', \App\Http\Controllers\OrderController::class);

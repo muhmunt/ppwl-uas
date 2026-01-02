@@ -1,12 +1,18 @@
-<x-admin-layout>
+@if(auth()->user()->role === 'admin')
+    <x-admin-layout>
+@else
+    <x-kasir-layout>
+@endif
     <x-slot name="header">
         <div class="flex justify-between items-center">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ __('Manajemen Menu') }}
+                {{ __('Daftar Menu') }}
             </h2>
-            <a href="{{ route('menus.create') }}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                Tambah Menu
-            </a>
+            @if(auth()->user()->role === 'admin')
+                <a href="{{ route('menus.create') }}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                    Tambah Menu
+                </a>
+            @endif
         </div>
     </x-slot>
 
@@ -109,19 +115,23 @@
                                         @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        <form action="{{ route('menus.toggle-availability', $menu) }}" method="POST" class="inline mr-2">
-                                            @csrf
-                                            <button type="submit" class="text-yellow-600 hover:text-yellow-900">
-                                                {{ $menu->is_available ? 'Nonaktifkan' : 'Aktifkan' }}
-                                            </button>
-                                        </form>
+                                        @if(auth()->user()->role === 'admin')
+                                            <form action="{{ route('menus.toggle-availability', $menu) }}" method="POST" class="inline mr-2">
+                                                @csrf
+                                                <button type="submit" class="text-yellow-600 hover:text-yellow-900">
+                                                    {{ $menu->is_available ? 'Nonaktifkan' : 'Aktifkan' }}
+                                                </button>
+                                            </form>
+                                        @endif
                                         <a href="{{ route('menus.show', $menu) }}" class="text-indigo-600 hover:text-indigo-900 mr-3">Lihat</a>
-                                        <a href="{{ route('menus.edit', $menu) }}" class="text-blue-600 hover:text-blue-900 mr-3">Edit</a>
-                                        <form action="{{ route('menus.destroy', $menu) }}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus menu ini?');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="text-red-600 hover:text-red-900">Hapus</button>
-                                        </form>
+                                        @if(auth()->user()->role === 'admin')
+                                            <a href="{{ route('menus.edit', $menu) }}" class="text-blue-600 hover:text-blue-900 mr-3">Edit</a>
+                                            <form action="{{ route('menus.destroy', $menu) }}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus menu ini?');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="text-red-600 hover:text-red-900">Hapus</button>
+                                            </form>
+                                        @endif
                                     </td>
                                 </tr>
                             @empty
@@ -142,4 +152,8 @@
             </div>
         </div>
     </div>
-</x-admin-layout>
+@if(auth()->user()->role === 'admin')
+    </x-admin-layout>
+@else
+    </x-kasir-layout>
+@endif

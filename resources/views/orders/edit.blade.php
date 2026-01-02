@@ -1,4 +1,8 @@
-<x-admin-layout>
+@if(auth()->user()->role === 'admin')
+    <x-admin-layout>
+@else
+    <x-kasir-layout>
+@endif
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
             {{ __('Edit Pesanan') }}
@@ -201,4 +205,8 @@
             }
         });
     </script>
-</x-admin-layout>
+@if(auth()->user()->role === 'admin')
+    </x-admin-layout>
+@else
+    </x-kasir-layout>
+@endif
