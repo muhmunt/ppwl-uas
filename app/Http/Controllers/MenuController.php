@@ -20,7 +20,7 @@ class MenuController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Menu::with('category');
+        $query = Menu::with(['category']);
 
         // Filter by category
         if ($request->has('category_id') && $request->category_id) {

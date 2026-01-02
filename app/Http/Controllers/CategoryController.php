@@ -19,7 +19,7 @@ class CategoryController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Category::query();
+        $query = Category::withCount('menus');
 
         // Search functionality
         if ($request->has('search') && $request->search) {
