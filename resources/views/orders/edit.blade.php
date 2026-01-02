@@ -1,9 +1,10 @@
 @if(auth()->user()->role === 'admin')
     <x-admin-layout>
+        <x-slot name="header">
 @else
     <x-kasir-layout>
+        <x-slot name="header">
 @endif
-    <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
             {{ __('Edit Pesanan') }}
         </h2>
