@@ -24,8 +24,13 @@ Route::middleware(['auth'])->group(function () {
     // Admin routes
     Route::middleware(['admin'])->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
-        // Other admin routes will be added here
+        
+        // Categories routes
+        Route::resource('categories', \App\Http\Controllers\CategoryController::class)->except(['index', 'create', 'store', 'show', 'edit', 'update', 'destroy']);
     });
+    
+    // Categories routes (accessible by admin only)
+    Route::middleware(['admin'])->resource('categories', \App\Http\Controllers\CategoryController::class);
 
     // Kasir routes
     Route::middleware(['kasir'])->prefix('kasir')->name('kasir.')->group(function () {
