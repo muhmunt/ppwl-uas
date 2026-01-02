@@ -9,11 +9,6 @@ use Illuminate\Support\Facades\DB;
 
 class ReportController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('admin');
-    }
-
     public function index(Request $request)
     {
         $startDate = $request->start_date ?? Carbon::today()->startOfMonth()->format('Y-m-d');
