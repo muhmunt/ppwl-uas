@@ -40,6 +40,9 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('orders', \App\Http\Controllers\OrderController::class);
     Route::post('orders/{order}/update-status', [\App\Http\Controllers\OrderController::class, 'updateStatus'])->name('orders.update-status');
     Route::get('orders/{order}/print', [\App\Http\Controllers\OrderController::class, 'print'])->name('orders.print');
+    
+    // Reports routes (admin only)
+    Route::middleware(['admin'])->get('reports', [\App\Http\Controllers\ReportController::class, 'index'])->name('reports.index');
 
     // Kasir routes
     Route::middleware(['kasir'])->prefix('kasir')->name('kasir.')->group(function () {

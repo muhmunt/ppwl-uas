@@ -78,11 +78,67 @@
                 </div>
             </div>
 
-            <!-- Quick Actions -->
+            <!-- Recent Orders -->
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
                 <div class="p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Pesanan Terbaru</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">No. Pesanan</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Pelanggan</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kasir</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                @forelse($recentOrders as $order)
+                                    <tr>
+                                        <td class="px-4 py-3 text-sm">{{ $order->order_number }}</td>
+                                        <td class="px-4 py-3 text-sm">{{ $order->customer_name ?? '-' }}</td>
+                                        <td class="px-4 py-3 text-sm">Rp {{ number_format($order->total_price, 0, ',', '.') }}</td>
+                                        <td class="px-4 py-3 text-sm">
+                                            <span class="px-2 py-1 text-xs rounded-full bg-{{ $order->status === 'completed' ? 'green' : ($order->status === 'pending' ? 'yellow' : 'blue') }}-100 text-{{ $order->status === 'completed' ? 'green' : ($order->status === 'pending' ? 'yellow' : 'blue') }}-800">
+                                                {{ ucfirst($order->status) }}
+                                            </span>
+                                        </td>
+                                        <td class="px-4 py-3 text-sm">{{ $order->user->name }}</td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="5" class="px-4 py-3 text-center text-sm text-gray-500">Tidak ada pesanan</td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Menus -->
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
+                <div class="p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Menu Terlaris</h3>
+                    <div class="space-y-2">
+                        @forelse($topMenus as $menu)
+                            <div class="flex justify-between items-center border-b pb-2">
+                                <span class="text-sm">{{ $menu->name }}</span>
+                                <span class="text-sm font-semibold">{{ $menu->total_sold }}x terjual</span>
+                            </div>
+                        @empty
+                            <p class="text-sm text-gray-500">Belum ada data penjualan</p>
+                        @endforelse
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <a href="{{ route('orders.create') }}" class="inline-flex items-center justify-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:outline-none focus:border-blue-700 focus:ring ring-blue-300 active:bg-blue-600 disabled:opacity-25 transition">
                             Buat Pesanan Baru
                         </a>
@@ -91,6 +147,9 @@
                         </a>
                         <a href="{{ route('menus.create') }}" class="inline-flex items-center justify-center px-4 py-2 bg-purple-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-purple-700 focus:outline-none focus:border-purple-700 focus:ring ring-purple-300 active:bg-purple-600 disabled:opacity-25 transition">
                             Tambah Menu
+                        </a>
+                        <a href="{{ route('reports.index') }}" class="inline-flex items-center justify-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 focus:outline-none focus:border-red-700 focus:ring ring-red-300 active:bg-red-600 disabled:opacity-25 transition">
+                            Laporan
                         </a>
                     </div>
                 </div>
