@@ -442,3 +442,4 @@ is_active = false → Kategori tidak aktif, tidak muncul di dropdown
 **Last Updated:** 2025-01-02
 **Version:** 1.0.0
 
+

@@ -1,121 +1,242 @@
 @if(auth()->user()->role === 'admin')
     <x-admin-layout>
         <x-slot name="header">
-@else
-    <x-kasir-layout>
-        <x-slot name="header">
-@endif
-        <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ __('Manajemen Pesanan') }}
-            </h2>
-            <a href="{{ route('orders.create') }}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                Buat Pesanan Baru
-            </a>
-        </div>
-    </x-slot>
-
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            @if(session('success'))
-                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
-                    <span class="block sm:inline">{{ session('success') }}</span>
-                </div>
-            @endif
-
-            <!-- Filters -->
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
-                <div class="p-6">
-                    <form method="GET" action="{{ route('orders.index') }}" class="flex flex-col md:flex-row gap-4">
-                        <div class="flex-1">
-                            <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nomor pesanan..." 
-                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                        </div>
-                        <div>
-                            <select name="status" class="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                <option value="">Semua Status</option>
-                                <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
-                                <option value="processing" {{ request('status') == 'processing' ? 'selected' : '' }}>Processing</option>
-                                <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completed</option>
-                                <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
-                            </select>
-                        </div>
-                        <div>
-                            <input type="date" name="date" value="{{ request('date') }}" 
-                                class="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                        </div>
-                        <button type="submit" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
-                            Filter
-                        </button>
-                    </form>
-                </div>
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="text-white fw-bold mb-0">
+                    <i class="bi bi-receipt me-2"></i>{{ __('Manajemen Pesanan') }}
+                </h2>
+                <a href="{{ route('admin.orders.create') }}" class="btn btn-light">
+                    <i class="bi bi-plus-circle me-2"></i>Buat Pesanan Baru
+                </a>
             </div>
+        </x-slot>
 
-            <!-- Orders Table -->
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
+        @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+
+        <!-- Filters -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
+                <form method="GET" action="{{ route('admin.orders.index') }}" class="row g-3">
+                    <div class="col-12 col-md-4">
+                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nomor pesanan..." 
+                            class="form-control">
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <select name="status" class="form-select">
+                            <option value="">Semua Status</option>
+                            <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
+                            <option value="processing" {{ request('status') == 'processing' ? 'selected' : '' }}>Processing</option>
+                            <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completed</option>
+                            <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <input type="date" name="date" value="{{ request('date') }}" class="form-control">
+                    </div>
+                    <div class="col-12 col-md-2">
+                        <button type="submit" class="btn btn-secondary w-100">
+                            <i class="bi bi-funnel me-1"></i>Filter
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Orders Table -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">No. Pesanan</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Pelanggan</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Meja</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kasir</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Aksi</th>
+                                <th>No. Pesanan</th>
+                                <th>Pelanggan</th>
+                                <th>Meja</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Kasir</th>
+                                <th>Aksi</th>
                             </tr>
                         </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
+                        <tbody>
                             @forelse($orders as $order)
                                 <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $order->order_number }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $order->customer_name ?? '-' }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $order->table_number ?? '-' }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Rp {{ number_format($order->total_price, 0, ',', '.') }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
+                                    <td><strong>{{ $order->order_number }}</strong></td>
+                                    <td>{{ $order->customer_name ?? '-' }}</td>
+                                    <td>{{ $order->table_number ?? '-' }}</td>
+                                    <td class="fw-bold text-success">Rp {{ number_format($order->total_price, 0, ',', '.') }}</td>
+                                    <td>
                                         @php
-                                            $statusColors = [
-                                                'pending' => 'bg-yellow-100 text-yellow-800',
-                                                'processing' => 'bg-blue-100 text-blue-800',
-                                                'completed' => 'bg-green-100 text-green-800',
-                                                'cancelled' => 'bg-red-100 text-red-800',
+                                            $statusClasses = [
+                                                'pending' => 'bg-warning',
+                                                'processing' => 'bg-info',
+                                                'completed' => 'bg-success',
+                                                'cancelled' => 'bg-danger',
                                             ];
+                                            $statusClass = $statusClasses[$order->status] ?? 'bg-secondary';
                                         @endphp
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $statusColors[$order->status] ?? 'bg-gray-100 text-gray-800' }}">
-                                            {{ ucfirst($order->status) }}
-                                        </span>
+                                        <span class="badge {{ $statusClass }}">{{ ucfirst($order->status) }}</span>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $order->user->name }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        <a href="{{ route('orders.show', $order) }}" class="text-indigo-600 hover:text-indigo-900 mr-3">Lihat</a>
-                                        @if($order->status === 'pending')
-                                            <a href="{{ route('orders.edit', $order) }}" class="text-blue-600 hover:text-blue-900 mr-3">Edit</a>
-                                            @if(auth()->user()->role === 'admin')
-                                                <form action="{{ route('orders.destroy', $order) }}" method="POST" class="inline mr-3" onsubmit="return confirm('Apakah Anda yakin ingin menghapus pesanan ini?');">
+                                    <td>{{ $order->user->name }}</td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="{{ route('admin.orders.show', $order) }}" class="btn btn-sm btn-info" title="Lihat">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            @if($order->status === 'pending')
+                                                <a href="{{ route('admin.orders.edit', $order) }}" class="btn btn-sm btn-warning" title="Edit">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                                <form action="{{ route('admin.orders.destroy', $order) }}" method="POST" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus pesanan ini?');">
                                                     @csrf
                                                     @method('DELETE')
-                                                    <button type="submit" class="text-red-600 hover:text-red-900">Hapus</button>
+                                                    <button type="submit" class="btn btn-sm btn-danger" title="Hapus">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
                                                 </form>
                                             @endif
-                                        @endif
-                                        <a href="{{ route('orders.print', $order) }}" class="text-purple-600 hover:text-purple-900 mr-3" target="_blank">Print</a>
+                                            <a href="{{ route('admin.orders.print', $order) }}" class="btn btn-sm btn-primary" target="_blank" title="Print">
+                                                <i class="bi bi-printer"></i>
+                                            </a>
+                                        </div>
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" class="px-6 py-4 text-center text-sm text-gray-500">Tidak ada pesanan ditemukan.</td>
+                                    <td colspan="7" class="text-center text-muted py-4">
+                                        <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                                        Tidak ada pesanan ditemukan.
+                                    </td>
                                 </tr>
                             @endforelse
                         </tbody>
                     </table>
                 </div>
-                <div class="px-6 py-4">{{ $orders->links() }}</div>
+                <div class="card-footer bg-white border-0">
+                    {{ $orders->links() }}
+                </div>
             </div>
         </div>
-    </div>
-@if(auth()->user()->role === 'admin')
     </x-admin-layout>
 @else
+    <x-kasir-layout>
+        <x-slot name="header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="text-white fw-bold mb-0">
+                    <i class="bi bi-receipt me-2"></i>{{ __('Manajemen Pesanan') }}
+                </h2>
+                <a href="{{ route('orders.create') }}" class="btn btn-light">
+                    <i class="bi bi-plus-circle me-2"></i>Buat Pesanan Baru
+                </a>
+            </div>
+        </x-slot>
+
+        @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+
+        <!-- Filters -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
+                <form method="GET" action="{{ route('orders.index') }}" class="row g-3">
+                    <div class="col-12 col-md-4">
+                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nomor pesanan..." 
+                            class="form-control">
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <select name="status" class="form-select">
+                            <option value="">Semua Status</option>
+                            <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
+                            <option value="processing" {{ request('status') == 'processing' ? 'selected' : '' }}>Processing</option>
+                            <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completed</option>
+                            <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <input type="date" name="date" value="{{ request('date') }}" class="form-control">
+                    </div>
+                    <div class="col-12 col-md-2">
+                        <button type="submit" class="btn btn-secondary w-100">
+                            <i class="bi bi-funnel me-1"></i>Filter
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Orders Table -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>No. Pesanan</th>
+                                <th>Pelanggan</th>
+                                <th>Meja</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($orders as $order)
+                                <tr>
+                                    <td><strong>{{ $order->order_number }}</strong></td>
+                                    <td>{{ $order->customer_name ?? '-' }}</td>
+                                    <td>{{ $order->table_number ?? '-' }}</td>
+                                    <td class="fw-bold text-success">Rp {{ number_format($order->total_price, 0, ',', '.') }}</td>
+                                    <td>
+                                        @php
+                                            $statusClasses = [
+                                                'pending' => 'bg-warning',
+                                                'processing' => 'bg-info',
+                                                'completed' => 'bg-success',
+                                                'cancelled' => 'bg-danger',
+                                            ];
+                                            $statusClass = $statusClasses[$order->status] ?? 'bg-secondary';
+                                        @endphp
+                                        <span class="badge {{ $statusClass }}">{{ ucfirst($order->status) }}</span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="{{ route('orders.show', $order) }}" class="btn btn-sm btn-info" title="Lihat">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            @if($order->status === 'pending')
+                                                <a href="{{ route('orders.edit', $order) }}" class="btn btn-sm btn-warning" title="Edit">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                            @endif
+                                            <a href="{{ route('orders.print', $order) }}" class="btn btn-sm btn-primary" target="_blank" title="Print">
+                                                <i class="bi bi-printer"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted py-4">
+                                        <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                                        Tidak ada pesanan ditemukan.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card-footer bg-white border-0">
+                    {{ $orders->links() }}
+                </div>
+            </div>
+        </div>
     </x-kasir-layout>
 @endif

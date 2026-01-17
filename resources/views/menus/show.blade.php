@@ -1,92 +1,157 @@
 @if(auth()->user()->role === 'admin')
     <x-admin-layout>
         <x-slot name="header">
-@else
-    <x-kasir-layout>
-        <x-slot name="header">
-@endif
-        <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ __('Detail Menu') }}
-            </h2>
-            <div>
-                @if(auth()->user()->role === 'admin')
-                    <a href="{{ route('menus.edit', $menu) }}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2">
-                        Edit
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="text-white fw-bold mb-0">
+                    <i class="bi bi-eye me-2"></i>{{ __('Detail Menu') }}
+                </h2>
+                <div>
+                    <a href="{{ route('admin.menus.edit', $menu) }}" class="btn btn-warning">
+                        <i class="bi bi-pencil me-2"></i>Edit
                     </a>
-                    <form action="{{ route('menus.destroy', $menu) }}" method="POST" class="inline mr-2" onsubmit="return confirm('Apakah Anda yakin ingin menghapus menu ini?');">
+                    <form action="{{ route('admin.menus.destroy', $menu) }}" method="POST" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus menu ini?');">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
-                            Hapus
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-trash me-2"></i>Hapus
                         </button>
                     </form>
-                @endif
-                <a href="{{ route('menus.index') }}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
-                    Kembali
-                </a>
+                    <a href="{{ route('admin.menus.index') }}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left me-2"></i>Kembali
+                    </a>
+                </div>
             </div>
-        </div>
-    </x-slot>
+        </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- Image -->
-                        <div>
-                            @if($menu->image)
-                                <img src="{{ Storage::url($menu->image) }}" alt="{{ $menu->name }}" class="w-full h-64 object-cover rounded-lg">
-                            @else
-                                <div class="w-full h-64 bg-gray-200 rounded-lg flex items-center justify-center">
-                                    <span class="text-gray-400">No Image</span>
-                                </div>
-                            @endif
-                        </div>
-
-                        <!-- Details -->
-                        <div>
-                            <h3 class="text-2xl font-bold text-gray-900 mb-4">{{ $menu->name }}</h3>
-                            
-                            <div class="mb-4">
-                                <label class="block text-sm font-medium text-gray-700">Kategori</label>
-                                <p class="text-gray-900">{{ $menu->category->name }}</p>
-                            </div>
-
-                            <div class="mb-4">
-                                <label class="block text-sm font-medium text-gray-700">Harga</label>
-                                <p class="text-gray-900 text-xl font-bold">Rp {{ number_format($menu->price, 0, ',', '.') }}</p>
-                            </div>
-
-                            <div class="mb-4">
-                                <label class="block text-sm font-medium text-gray-700">Stok</label>
-                                <p class="text-gray-900">{{ $menu->stock }}</p>
-                            </div>
-
-                            <div class="mb-4">
-                                <label class="block text-sm font-medium text-gray-700">Status</label>
-                                @if($menu->is_available)
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Tersedia</span>
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-10">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="row g-4">
+                            <!-- Image -->
+                            <div class="col-12 col-md-5">
+                                @if($menu->image)
+                                    <img src="{{ Storage::url($menu->image) }}" alt="{{ $menu->name }}" class="img-fluid rounded">
                                 @else
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Tidak Tersedia</span>
+                                    <div class="bg-light rounded d-flex align-items-center justify-content-center" style="height: 300px;">
+                                        <i class="bi bi-image text-muted fs-1"></i>
+                                    </div>
                                 @endif
                             </div>
 
-                            @if($menu->description)
-                                <div class="mb-4">
-                                    <label class="block text-sm font-medium text-gray-700">Deskripsi</label>
-                                    <p class="text-gray-900">{{ $menu->description }}</p>
+                            <!-- Details -->
+                            <div class="col-12 col-md-7">
+                                <h3 class="fw-bold mb-4">{{ $menu->name }}</h3>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-muted small">Kategori</label>
+                                    <p class="mb-0"><span class="badge bg-info">{{ $menu->category->name }}</span></p>
                                 </div>
-                            @endif
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-muted small">Harga</label>
+                                    <p class="mb-0 fs-4 fw-bold text-success">Rp {{ number_format($menu->price, 0, ',', '.') }}</p>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-muted small">Stok</label>
+                                    <p class="mb-0 fs-5">{{ $menu->stock }}</p>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-muted small">Status</label>
+                                    <p class="mb-0">
+                                        @if($menu->is_available)
+                                            <span class="badge bg-success">Tersedia</span>
+                                        @else
+                                            <span class="badge bg-danger">Tidak Tersedia</span>
+                                        @endif
+                                    </p>
+                                </div>
+
+                                @if($menu->description)
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold text-muted small">Deskripsi</label>
+                                        <p class="mb-0">{{ $menu->description }}</p>
+                                    </div>
+                                @endif
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-@if(auth()->user()->role === 'admin')
     </x-admin-layout>
 @else
+    <x-kasir-layout>
+        <x-slot name="header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="text-white fw-bold mb-0">
+                    <i class="bi bi-eye me-2"></i>{{ __('Detail Menu') }}
+                </h2>
+                <a href="{{ route('menus.index') }}" class="btn btn-light">
+                    <i class="bi bi-arrow-left me-2"></i>Kembali
+                </a>
+            </div>
+        </x-slot>
+
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-10">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="row g-4">
+                            <!-- Image -->
+                            <div class="col-12 col-md-5">
+                                @if($menu->image)
+                                    <img src="{{ Storage::url($menu->image) }}" alt="{{ $menu->name }}" class="img-fluid rounded">
+                                @else
+                                    <div class="bg-light rounded d-flex align-items-center justify-content-center" style="height: 300px;">
+                                        <i class="bi bi-image text-muted fs-1"></i>
+                                    </div>
+                                @endif
+                            </div>
+
+                            <!-- Details -->
+                            <div class="col-12 col-md-7">
+                                <h3 class="fw-bold mb-4">{{ $menu->name }}</h3>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-muted small">Kategori</label>
+                                    <p class="mb-0"><span class="badge bg-info">{{ $menu->category->name }}</span></p>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-muted small">Harga</label>
+                                    <p class="mb-0 fs-4 fw-bold text-success">Rp {{ number_format($menu->price, 0, ',', '.') }}</p>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-muted small">Stok</label>
+                                    <p class="mb-0 fs-5">{{ $menu->stock }}</p>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-muted small">Status</label>
+                                    <p class="mb-0">
+                                        @if($menu->is_available)
+                                            <span class="badge bg-success">Tersedia</span>
+                                        @else
+                                            <span class="badge bg-danger">Tidak Tersedia</span>
+                                        @endif
+                                    </p>
+                                </div>
+
+                                @if($menu->description)
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold text-muted small">Deskripsi</label>
+                                        <p class="mb-0">{{ $menu->description }}</p>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </x-kasir-layout>
 @endif

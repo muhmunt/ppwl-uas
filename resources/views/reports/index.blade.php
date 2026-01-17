@@ -1,111 +1,154 @@
 <x-admin-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Laporan Penjualan') }}
+        <h2 class="text-white fw-bold mb-0">
+            <i class="bi bi-graph-up me-2"></i>{{ __('Laporan Penjualan') }}
         </h2>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <!-- Filter -->
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
-                <div class="p-6">
-                    <form method="GET" action="{{ route('reports.index') }}" class="flex flex-col md:flex-row gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Dari Tanggal</label>
-                            <input type="date" name="start_date" value="{{ $startDate }}" class="rounded-md border-gray-300">
+    <!-- Filter -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-0 py-3">
+            <h5 class="mb-0 fw-bold">
+                <i class="bi bi-funnel me-2"></i>Filter Laporan
+            </h5>
+        </div>
+        <div class="card-body">
+            <form method="GET" action="{{ route('admin.reports.index') }}" class="row g-3">
+                <div class="col-12 col-md-4">
+                    <label class="form-label fw-bold">Dari Tanggal</label>
+                    <input type="date" name="start_date" value="{{ $startDate }}" class="form-control">
+                </div>
+                <div class="col-12 col-md-4">
+                    <label class="form-label fw-bold">Sampai Tanggal</label>
+                    <input type="date" name="end_date" value="{{ $endDate }}" class="form-control">
+                </div>
+                <div class="col-12 col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search me-2"></i>Filter
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-12 col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-primary bg-gradient rounded-3 p-3 me-3">
+                            <i class="bi bi-receipt-cutoff text-white fs-4"></i>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Sampai Tanggal</label>
-                            <input type="date" name="end_date" value="{{ $endDate }}" class="rounded-md border-gray-300">
+                            <p class="text-muted small mb-1">Total Pesanan</p>
+                            <h3 class="mb-0 fw-bold text-primary">{{ $stats['total_orders'] }}</h3>
                         </div>
-                        <div class="flex items-end">
-                            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                                Filter
-                            </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-success bg-gradient rounded-3 p-3 me-3">
+                            <i class="bi bi-currency-dollar text-white fs-4"></i>
                         </div>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Stats -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="p-6">
-                        <p class="text-sm text-gray-500">Total Pesanan</p>
-                        <p class="text-2xl font-semibold">{{ $stats['total_orders'] }}</p>
-                    </div>
-                </div>
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="p-6">
-                        <p class="text-sm text-gray-500">Total Pendapatan</p>
-                        <p class="text-2xl font-semibold">Rp {{ number_format($stats['total_revenue'], 0, ',', '.') }}</p>
-                    </div>
-                </div>
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="p-6">
-                        <p class="text-sm text-gray-500">Rata-rata Pesanan</p>
-                        <p class="text-2xl font-semibold">Rp {{ number_format($stats['average_order'], 0, ',', '.') }}</p>
+                        <div>
+                            <p class="text-muted small mb-1">Total Pendapatan</p>
+                            <h3 class="mb-0 fw-bold text-success">Rp {{ number_format($stats['total_revenue'], 0, ',', '.') }}</h3>
+                        </div>
                     </div>
                 </div>
             </div>
-
-            <!-- Daily Reports -->
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
-                <div class="p-6">
-                    <h3 class="text-lg font-semibold mb-4">Laporan Harian</h3>
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tanggal</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Jumlah Pesanan</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Pendapatan</th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
-                                @foreach($dailyReports as $report)
-                                    <tr>
-                                        <td class="px-4 py-3 text-sm">{{ $report['date_formatted'] }}</td>
-                                        <td class="px-4 py-3 text-sm">{{ $report['orders'] }}</td>
-                                        <td class="px-4 py-3 text-sm">Rp {{ number_format($report['revenue'], 0, ',', '.') }}</td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-info bg-gradient rounded-3 p-3 me-3">
+                            <i class="bi bi-bar-chart text-white fs-4"></i>
+                        </div>
+                        <div>
+                            <p class="text-muted small mb-1">Rata-rata Pesanan</p>
+                            <h3 class="mb-0 fw-bold text-info">Rp {{ number_format($stats['average_order'], 0, ',', '.') }}</h3>
+                        </div>
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
 
-            <!-- Menu Sales -->
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6">
-                    <h3 class="text-lg font-semibold mb-4">Penjualan Menu</h3>
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Menu</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Terjual</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total Pendapatan</th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
-                                @forelse($menuSales as $sale)
-                                    <tr>
-                                        <td class="px-4 py-3 text-sm">{{ $sale->name }}</td>
-                                        <td class="px-4 py-3 text-sm">{{ $sale->total_sold }}</td>
-                                        <td class="px-4 py-3 text-sm">Rp {{ number_format($sale->total_revenue, 0, ',', '.') }}</td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="3" class="px-4 py-3 text-center text-sm text-gray-500">Tidak ada data</td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+    <!-- Daily Reports -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-0 py-3">
+            <h5 class="mb-0 fw-bold text-primary">
+                <i class="bi bi-calendar-check me-2"></i>Laporan Harian
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Tanggal</th>
+                            <th>Jumlah Pesanan</th>
+                            <th>Pendapatan</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($dailyReports as $report)
+                            <tr>
+                                <td><strong>{{ $report['date_formatted'] }}</strong></td>
+                                <td>
+                                    <span class="badge bg-primary">{{ $report['orders'] }} pesanan</span>
+                                </td>
+                                <td class="fw-bold text-success">Rp {{ number_format($report['revenue'], 0, ',', '.') }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Menu Sales -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-0 py-3">
+            <h5 class="mb-0 fw-bold text-info">
+                <i class="bi bi-menu-button-wide me-2"></i>Penjualan Menu
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Menu</th>
+                            <th>Terjual</th>
+                            <th>Total Pendapatan</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($menuSales as $sale)
+                            <tr>
+                                <td><strong>{{ $sale->name }}</strong></td>
+                                <td>
+                                    <span class="badge bg-success">{{ $sale->total_sold }} item</span>
+                                </td>
+                                <td class="fw-bold text-success">Rp {{ number_format($sale->total_revenue, 0, ',', '.') }}</td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="3" class="text-center text-muted py-4">
+                                    <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                                    Tidak ada data penjualan
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>

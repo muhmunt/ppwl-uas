@@ -21,42 +21,50 @@ Route::middleware(['auth'])->group(function () {
         return view('dashboard');
     })->name('dashboard');
 
-    // Admin routes
+    // Admin routes (with /admin prefix)
     Route::middleware(['admin'])->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
         
-        // Categories routes
-        Route::resource('categories', \App\Http\Controllers\CategoryController::class)->except(['index', 'create', 'store', 'show', 'edit', 'update', 'destroy']);
-    });
-    
-    // Categories routes (accessible by admin only)
-    Route::middleware(['admin'])->resource('categories', \App\Http\Controllers\CategoryController::class);
-    
-    // Menus routes
-    Route::middleware(['kasir'])->get('menus', [\App\Http\Controllers\MenuController::class, 'index'])->name('menus.index');
-    Route::middleware(['kasir'])->get('menus/{menu}', [\App\Http\Controllers\MenuController::class, 'show'])->name('menus.show');
-    // Admin only routes for menu management
-    Route::middleware(['admin'])->group(function () {
+        // Categories routes (admin only)
+        Route::resource('categories', \App\Http\Controllers\CategoryController::class);
+        
+        // Menus routes (admin only)
+        Route::get('menus', [\App\Http\Controllers\MenuController::class, 'index'])->name('menus.index');
         Route::get('menus/create', [\App\Http\Controllers\MenuController::class, 'create'])->name('menus.create');
         Route::post('menus', [\App\Http\Controllers\MenuController::class, 'store'])->name('menus.store');
+        Route::get('menus/{menu}', [\App\Http\Controllers\MenuController::class, 'show'])->name('menus.show');
         Route::get('menus/{menu}/edit', [\App\Http\Controllers\MenuController::class, 'edit'])->name('menus.edit');
         Route::put('menus/{menu}', [\App\Http\Controllers\MenuController::class, 'update'])->name('menus.update');
         Route::delete('menus/{menu}', [\App\Http\Controllers\MenuController::class, 'destroy'])->name('menus.destroy');
         Route::post('menus/{menu}/toggle-availability', [\App\Http\Controllers\MenuController::class, 'toggleAvailability'])->name('menus.toggle-availability');
+        
+        // Orders routes (admin can also access)
+        Route::resource('orders', \App\Http\Controllers\OrderController::class);
+        Route::post('orders/{order}/update-status', [\App\Http\Controllers\OrderController::class, 'updateStatus'])->name('orders.update-status');
+        Route::get('orders/{order}/print', [\App\Http\Controllers\OrderController::class, 'print'])->name('orders.print');
+        
+        // Reports routes (admin only)
+        Route::get('reports', [\App\Http\Controllers\ReportController::class, 'index'])->name('reports.index');
     });
     
-    // Orders routes (accessible by kasir and admin)
+    // Categories routes without prefix (for backward compatibility)
+    Route::middleware(['admin'])->resource('categories', \App\Http\Controllers\CategoryController::class);
+    
+    // Menus routes (read-only for kasir - without prefix)
+    Route::middleware(['kasir'])->get('menus', [\App\Http\Controllers\MenuController::class, 'index'])->name('menus.index');
+    Route::middleware(['kasir'])->get('menus/{menu}', [\App\Http\Controllers\MenuController::class, 'show'])->name('menus.show');
+    
+    // Orders routes (accessible by kasir - without prefix)
     Route::middleware(['kasir'])->resource('orders', \App\Http\Controllers\OrderController::class);
     Route::middleware(['kasir'])->post('orders/{order}/update-status', [\App\Http\Controllers\OrderController::class, 'updateStatus'])->name('orders.update-status');
     Route::middleware(['kasir'])->get('orders/{order}/print', [\App\Http\Controllers\OrderController::class, 'print'])->name('orders.print');
     
-    // Reports routes (admin only)
+    // Reports routes without prefix (for backward compatibility)
     Route::middleware(['admin'])->get('reports', [\App\Http\Controllers\ReportController::class, 'index'])->name('reports.index');
 
-    // Kasir routes
+    // Kasir routes (with /kasir prefix)
     Route::middleware(['kasir'])->prefix('kasir')->name('kasir.')->group(function () {
         Route::get('/dashboard', [KasirDashboardController::class, 'index'])->name('dashboard');
-        // Other kasir routes will be added here
     });
 
     // Profile routes (accessible by all authenticated users)

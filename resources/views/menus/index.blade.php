@@ -1,147 +1,146 @@
-@php
-    $layout = auth()->user()->role === 'admin' ? 'admin-layout' : 'kasir-layout';
-@endphp
-
 @if(auth()->user()->role === 'admin')
     <x-admin-layout>
         <x-slot name="header">
-@else
-    <x-kasir-layout>
-        <x-slot name="header">
-@endif
-        <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ __('Daftar Menu') }}
-            </h2>
-            @if(auth()->user()->role === 'admin')
-                <a href="{{ route('menus.create') }}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                    Tambah Menu
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="text-white fw-bold mb-0">
+                    <i class="bi bi-menu-button-wide me-2"></i>{{ __('Daftar Menu') }}
+                </h2>
+                <a href="{{ route('admin.menus.create') }}" class="btn btn-light">
+                    <i class="bi bi-plus-circle me-2"></i>Tambah Menu
                 </a>
-            @endif
-        </div>
-    </x-slot>
-
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <!-- Success/Error Messages -->
-            @if(session('success'))
-                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
-                    <span class="block sm:inline">{{ session('success') }}</span>
-                </div>
-            @endif
-
-            @if(session('error'))
-                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-                    <span class="block sm:inline">{{ session('error') }}</span>
-                </div>
-            @endif
-
-            <!-- Search and Filter -->
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
-                <div class="p-6">
-                    <form method="GET" action="{{ route('menus.index') }}" class="flex flex-col md:flex-row gap-4">
-                        <div class="flex-1">
-                            <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari menu..." 
-                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                        </div>
-                        <div>
-                            <select name="category_id" class="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                <option value="">Semua Kategori</option>
-                                @foreach($categories as $category)
-                                    <option value="{{ $category->id }}" {{ request('category_id') == $category->id ? 'selected' : '' }}>
-                                        {{ $category->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div>
-                            <select name="is_available" class="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                <option value="">Semua Status</option>
-                                <option value="1" {{ request('is_available') == '1' ? 'selected' : '' }}>Tersedia</option>
-                                <option value="0" {{ request('is_available') == '0' ? 'selected' : '' }}>Tidak Tersedia</option>
-                            </select>
-                        </div>
-                        <button type="submit" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
-                            Filter
-                        </button>
-                        @if(request('search') || request('category_id') || request('is_available') !== '')
-                            <a href="{{ route('menus.index') }}" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded">
-                                Reset
-                            </a>
-                        @endif
-                    </form>
-                </div>
             </div>
+        </x-slot>
 
-            <!-- Menus Table -->
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
+        <!-- Success/Error Messages -->
+        @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle me-2"></i>{{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+
+        <!-- Add Menu Button -->
+        <div class="mb-4 d-flex justify-content-end">
+            <a href="{{ route('admin.menus.create') }}" class="btn btn-primary btn-lg">
+                <i class="bi bi-plus-circle me-2"></i>Tambah Menu Baru
+            </a>
+        </div>
+
+        <!-- Search and Filter -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
+                <form method="GET" action="{{ route('admin.menus.index') }}" class="row g-3">
+                    <div class="col-12 col-md-4">
+                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari menu..." 
+                            class="form-control">
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <select name="category_id" class="form-select">
+                            <option value="">Semua Kategori</option>
+                            @foreach($categories as $category)
+                                <option value="{{ $category->id }}" {{ request('category_id') == $category->id ? 'selected' : '' }}>
+                                    {{ $category->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <select name="is_available" class="form-select">
+                            <option value="">Semua Status</option>
+                            <option value="1" {{ request('is_available') == '1' ? 'selected' : '' }}>Tersedia</option>
+                            <option value="0" {{ request('is_available') == '0' ? 'selected' : '' }}>Tidak Tersedia</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-2">
+                        <button type="submit" class="btn btn-secondary w-100">
+                            <i class="bi bi-funnel me-1"></i>Filter
+                        </button>
+                    </div>
+                    @if(request('search') || request('category_id') || request('is_available') !== '')
+                        <div class="col-12 col-md-2">
+                            <a href="{{ route('admin.menus.index') }}" class="btn btn-outline-secondary w-100">
+                                <i class="bi bi-x-circle me-1"></i>Reset
+                            </a>
+                        </div>
+                    @endif
+                </form>
+            </div>
+        </div>
+
+        <!-- Menus Table -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gambar</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kategori</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Harga</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stok</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                                <th>Gambar</th>
+                                <th>Nama</th>
+                                <th>Kategori</th>
+                                <th>Harga</th>
+                                <th>Stok</th>
+                                <th>Status</th>
+                                <th>Aksi</th>
                             </tr>
                         </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
+                        <tbody>
                             @forelse($menus as $menu)
                                 <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap">
+                                    <td>
                                         @if($menu->image)
-                                            <img src="{{ Storage::url($menu->image) }}" alt="{{ $menu->name }}" class="h-16 w-16 object-cover rounded">
+                                            <img src="{{ Storage::url($menu->image) }}" alt="{{ $menu->name }}" class="img-thumbnail" style="width: 80px; height: 80px; object-fit: cover;">
                                         @else
-                                            <div class="h-16 w-16 bg-gray-200 rounded flex items-center justify-center">
-                                                <span class="text-gray-400">No Image</span>
+                                            <div class="bg-light d-flex align-items-center justify-content-center rounded" style="width: 80px; height: 80px;">
+                                                <i class="bi bi-image text-muted"></i>
                                             </div>
                                         @endif
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm font-medium text-gray-900">{{ $menu->name }}</div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm text-gray-500">{{ $menu->category->name }}</div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm font-medium text-gray-900">Rp {{ number_format($menu->price, 0, ',', '.') }}</div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {{ $menu->stock }}
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
+                                    <td><strong>{{ $menu->name }}</strong></td>
+                                    <td><span class="badge bg-info">{{ $menu->category->name }}</span></td>
+                                    <td class="fw-bold text-success">Rp {{ number_format($menu->price, 0, ',', '.') }}</td>
+                                    <td>{{ $menu->stock }}</td>
+                                    <td>
                                         @if($menu->is_available)
-                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Tersedia</span>
+                                            <span class="badge bg-success">Tersedia</span>
                                         @else
-                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Tidak Tersedia</span>
+                                            <span class="badge bg-danger">Tidak Tersedia</span>
                                         @endif
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        @if(auth()->user()->role === 'admin')
-                                            <form action="{{ route('menus.toggle-availability', $menu) }}" method="POST" class="inline mr-2">
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <form action="{{ route('admin.menus.toggle-availability', $menu) }}" method="POST" class="d-inline">
                                                 @csrf
-                                                <button type="submit" class="text-yellow-600 hover:text-yellow-900">
-                                                    {{ $menu->is_available ? 'Nonaktifkan' : 'Aktifkan' }}
+                                                <button type="submit" class="btn btn-sm btn-warning">
+                                                    <i class="bi bi-{{ $menu->is_available ? 'toggle-on' : 'toggle-off' }}"></i>
                                                 </button>
                                             </form>
-                                        @endif
-                                        <a href="{{ route('menus.show', $menu) }}" class="text-indigo-600 hover:text-indigo-900 mr-3">Lihat</a>
-                                        @if(auth()->user()->role === 'admin')
-                                            <a href="{{ route('menus.edit', $menu) }}" class="text-blue-600 hover:text-blue-900 mr-3">Edit</a>
-                                            <form action="{{ route('menus.destroy', $menu) }}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus menu ini?');">
+                                            <a href="{{ route('admin.menus.show', $menu) }}" class="btn btn-sm btn-info">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <a href="{{ route('admin.menus.edit', $menu) }}" class="btn btn-sm btn-primary">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <form action="{{ route('admin.menus.destroy', $menu) }}" method="POST" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus menu ini?');">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="text-red-600 hover:text-red-900">Hapus</button>
+                                                <button type="submit" class="btn btn-sm btn-danger">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
                                             </form>
-                                        @endif
+                                        </div>
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" class="px-6 py-4 text-center text-sm text-gray-500">
+                                    <td colspan="7" class="text-center text-muted py-4">
+                                        <i class="bi bi-inbox fs-1 d-block mb-2"></i>
                                         Tidak ada menu ditemukan.
                                     </td>
                                 </tr>
@@ -149,16 +148,140 @@
                         </tbody>
                     </table>
                 </div>
-
+                
                 <!-- Pagination -->
-                <div class="px-6 py-4">
+                <div class="card-footer bg-white border-0">
                     {{ $menus->links() }}
                 </div>
             </div>
         </div>
-    </div>
-@if(auth()->user()->role === 'admin')
     </x-admin-layout>
 @else
+    <x-kasir-layout>
+        <x-slot name="header">
+            <h2 class="text-white fw-bold mb-0">
+                <i class="bi bi-menu-button-wide me-2"></i>{{ __('Daftar Menu') }}
+            </h2>
+        </x-slot>
+
+        <!-- Success/Error Messages -->
+        @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle me-2"></i>{{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+
+        <!-- Search and Filter -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
+                <form method="GET" action="{{ route('menus.index') }}" class="row g-3">
+                    <div class="col-12 col-md-4">
+                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari menu..." 
+                            class="form-control">
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <select name="category_id" class="form-select">
+                            <option value="">Semua Kategori</option>
+                            @foreach($categories as $category)
+                                <option value="{{ $category->id }}" {{ request('category_id') == $category->id ? 'selected' : '' }}>
+                                    {{ $category->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <select name="is_available" class="form-select">
+                            <option value="">Semua Status</option>
+                            <option value="1" {{ request('is_available') == '1' ? 'selected' : '' }}>Tersedia</option>
+                            <option value="0" {{ request('is_available') == '0' ? 'selected' : '' }}>Tidak Tersedia</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-2">
+                        <button type="submit" class="btn btn-secondary w-100">
+                            <i class="bi bi-funnel me-1"></i>Filter
+                        </button>
+                    </div>
+                    @if(request('search') || request('category_id') || request('is_available') !== '')
+                        <div class="col-12 col-md-2">
+                            <a href="{{ route('menus.index') }}" class="btn btn-outline-secondary w-100">
+                                <i class="bi bi-x-circle me-1"></i>Reset
+                            </a>
+                        </div>
+                    @endif
+                </form>
+            </div>
+        </div>
+
+        <!-- Menus Table -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Gambar</th>
+                                <th>Nama</th>
+                                <th>Kategori</th>
+                                <th>Harga</th>
+                                <th>Stok</th>
+                                <th>Status</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($menus as $menu)
+                                <tr>
+                                    <td>
+                                        @if($menu->image)
+                                            <img src="{{ Storage::url($menu->image) }}" alt="{{ $menu->name }}" class="img-thumbnail" style="width: 80px; height: 80px; object-fit: cover;">
+                                        @else
+                                            <div class="bg-light d-flex align-items-center justify-content-center rounded" style="width: 80px; height: 80px;">
+                                                <i class="bi bi-image text-muted"></i>
+                                            </div>
+                                        @endif
+                                    </td>
+                                    <td><strong>{{ $menu->name }}</strong></td>
+                                    <td><span class="badge bg-info">{{ $menu->category->name }}</span></td>
+                                    <td class="fw-bold text-success">Rp {{ number_format($menu->price, 0, ',', '.') }}</td>
+                                    <td>{{ $menu->stock }}</td>
+                                    <td>
+                                        @if($menu->is_available)
+                                            <span class="badge bg-success">Tersedia</span>
+                                        @else
+                                            <span class="badge bg-danger">Tidak Tersedia</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        <a href="{{ route('menus.show', $menu) }}" class="btn btn-sm btn-info">
+                                            <i class="bi bi-eye me-1"></i>Lihat
+                                        </a>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="7" class="text-center text-muted py-4">
+                                        <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                                        Tidak ada menu ditemukan.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Pagination -->
+                <div class="card-footer bg-white border-0">
+                    {{ $menus->links() }}
+                </div>
+            </div>
+        </div>
     </x-kasir-layout>
 @endif

@@ -1,97 +1,110 @@
 <x-kasir-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Dashboard Kasir') }}
+        <h2 class="text-white fw-bold mb-0">
+            <i class="bi bi-speedometer2 me-2"></i>{{ __('Dashboard Kasir') }}
         </h2>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <!-- Stats Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                <!-- Pesanan Saya Hari Ini -->
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="p-6 text-gray-900">
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0 bg-blue-500 rounded-md p-3">
-                                <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                                </svg>
-                            </div>
-                            <div class="ml-4">
-                                <p class="text-sm font-medium text-gray-500">Pesanan Saya Hari Ini</p>
-                                <p class="text-2xl font-semibold text-gray-900">{{ $stats['my_orders_today'] }}</p>
-                            </div>
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-4">
+        <!-- Pesanan Saya Hari Ini -->
+        <div class="col-12 col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-success bg-gradient rounded-3 p-3 me-3">
+                            <i class="bi bi-clipboard-check text-white fs-4"></i>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Pendapatan Saya Hari Ini -->
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="p-6 text-gray-900">
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0 bg-green-500 rounded-md p-3">
-                                <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                            </div>
-                            <div class="ml-4">
-                                <p class="text-sm font-medium text-gray-500">Pendapatan Saya Hari Ini</p>
-                                <p class="text-2xl font-semibold text-gray-900">Rp {{ number_format($stats['my_revenue_today'], 0, ',', '.') }}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Pesanan Aktif -->
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="p-6 text-gray-900">
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0 bg-orange-500 rounded-md p-3">
-                                <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                            </div>
-                            <div class="ml-4">
-                                <p class="text-sm font-medium text-gray-500">Pesanan Aktif</p>
-                                <p class="text-2xl font-semibold text-gray-900">{{ $stats['active_orders'] }}</p>
-                            </div>
+                        <div>
+                            <p class="text-muted small mb-1">Pesanan Saya Hari Ini</p>
+                            <h3 class="mb-0 fw-bold text-success">{{ $stats['my_orders_today'] }}</h3>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- My Recent Orders -->
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
-                <div class="p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Pesanan Saya</h3>
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
+        <!-- Pendapatan Saya Hari Ini -->
+        <div class="col-12 col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-primary bg-gradient rounded-3 p-3 me-3">
+                            <i class="bi bi-currency-dollar text-white fs-4"></i>
+                        </div>
+                        <div>
+                            <p class="text-muted small mb-1">Pendapatan Saya Hari Ini</p>
+                            <h3 class="mb-0 fw-bold text-primary">Rp {{ number_format($stats['my_revenue_today'], 0, ',', '.') }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pesanan Aktif -->
+        <div class="col-12 col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-warning bg-gradient rounded-3 p-3 me-3">
+                            <i class="bi bi-hourglass-split text-white fs-4"></i>
+                        </div>
+                        <div>
+                            <p class="text-muted small mb-1">Pesanan Aktif</p>
+                            <h3 class="mb-0 fw-bold text-warning">{{ $stats['active_orders'] }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- My Recent Orders -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 py-3">
+                    <h5 class="mb-0 fw-bold text-success">
+                        <i class="bi bi-receipt me-2"></i>Pesanan Saya
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
                                 <tr>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">No. Pesanan</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Aksi</th>
+                                    <th>No. Pesanan</th>
+                                    <th>Total</th>
+                                    <th>Status</th>
+                                    <th>Aksi</th>
                                 </tr>
                             </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
+                            <tbody>
                                 @forelse($myOrders as $order)
                                     <tr>
-                                        <td class="px-4 py-3 text-sm">{{ $order->order_number }}</td>
-                                        <td class="px-4 py-3 text-sm">Rp {{ number_format($order->total_price, 0, ',', '.') }}</td>
-                                        <td class="px-4 py-3 text-sm">
-                                            <span class="px-2 py-1 text-xs rounded-full bg-{{ $order->status === 'completed' ? 'green' : ($order->status === 'pending' ? 'yellow' : 'blue') }}-100 text-{{ $order->status === 'completed' ? 'green' : ($order->status === 'pending' ? 'yellow' : 'blue') }}-800">
-                                                {{ ucfirst($order->status) }}
-                                            </span>
+                                        <td><strong>{{ $order->order_number }}</strong></td>
+                                        <td class="fw-bold">Rp {{ number_format($order->total_price, 0, ',', '.') }}</td>
+                                        <td>
+                                            @php
+                                                $statusClasses = [
+                                                    'completed' => 'bg-success',
+                                                    'pending' => 'bg-warning',
+                                                    'processing' => 'bg-info',
+                                                    'cancelled' => 'bg-danger',
+                                                ];
+                                                $statusClass = $statusClasses[$order->status] ?? 'bg-secondary';
+                                            @endphp
+                                            <span class="badge {{ $statusClass }}">{{ ucfirst($order->status) }}</span>
                                         </td>
-                                        <td class="px-4 py-3 text-sm">
-                                            <a href="{{ route('orders.show', $order) }}" class="text-blue-600 hover:text-blue-900">Lihat</a>
+                                        <td>
+                                            <a href="{{ route('orders.show', $order) }}" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-eye me-1"></i>Lihat
+                                            </a>
                                         </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="4" class="px-4 py-3 text-center text-sm text-gray-500">Belum ada pesanan</td>
+                                        <td colspan="4" class="text-center text-muted py-4">Belum ada pesanan</td>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -99,16 +112,23 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
 
-            <!-- Quick Action -->
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
-                    <div class="flex justify-start">
-                        <a href="{{ route('orders.create') }}" class="inline-flex items-center justify-center px-6 py-3 bg-blue-600 border border-transparent rounded-md font-semibold text-sm text-white uppercase tracking-widest hover:bg-blue-700 focus:outline-none focus:border-blue-700 focus:ring ring-blue-300 active:bg-blue-600 disabled:opacity-25 transition">
-                            Buat Pesanan Baru
-                        </a>
-                    </div>
+    <!-- Quick Action -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 py-3">
+                    <h5 class="mb-0 fw-bold text-primary">
+                        <i class="bi bi-lightning-fill me-2"></i>Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <a href="{{ route('orders.create') }}" class="btn btn-primary btn-lg d-inline-flex align-items-center">
+                        <i class="bi bi-plus-circle me-2"></i>
+                        Buat Pesanan Baru
+                    </a>
                 </div>
             </div>
         </div>

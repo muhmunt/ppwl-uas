@@ -1,23 +1,22 @@
 <x-admin-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Edit Menu') }}
+        <h2 class="text-white fw-bold mb-0">
+            <i class="bi bi-pencil me-2"></i>{{ __('Edit Menu') }}
         </h2>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-2xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900">
-                    <form method="POST" action="{{ route('menus.update', $menu) }}" enctype="multipart/form-data">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <form method="POST" action="{{ route('admin.menus.update', $menu) }}" enctype="multipart/form-data">
                         @csrf
                         @method('PUT')
 
                         <!-- Category -->
-                        <div class="mb-4">
-                            <label for="category_id" class="block text-sm font-medium text-gray-700">Kategori *</label>
-                            <select name="category_id" id="category_id" required
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <div class="mb-3">
+                            <label for="category_id" class="form-label fw-bold">Kategori <span class="text-danger">*</span></label>
+                            <select name="category_id" id="category_id" required class="form-select form-select-lg">
                                 <option value="">Pilih Kategori</option>
                                 @foreach($categories as $category)
                                     <option value="{{ $category->id }}" {{ old('category_id', $menu->category_id) == $category->id ? 'selected' : '' }}>
@@ -26,82 +25,79 @@
                                 @endforeach
                             </select>
                             @error('category_id')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                <div class="text-danger small mt-1">{{ $message }}</div>
                             @enderror
                         </div>
 
                         <!-- Name -->
-                        <div class="mb-4">
-                            <label for="name" class="block text-sm font-medium text-gray-700">Nama Menu *</label>
-                            <input type="text" name="name" id="name" value="{{ old('name', $menu->name) }}" required
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <div class="mb-3">
+                            <label for="name" class="form-label fw-bold">Nama Menu <span class="text-danger">*</span></label>
+                            <input type="text" name="name" id="name" value="{{ old('name', $menu->name) }}" required class="form-control form-control-lg">
                             @error('name')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                <div class="text-danger small mt-1">{{ $message }}</div>
                             @enderror
                         </div>
 
                         <!-- Description -->
-                        <div class="mb-4">
-                            <label for="description" class="block text-sm font-medium text-gray-700">Deskripsi</label>
-                            <textarea name="description" id="description" rows="3"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">{{ old('description', $menu->description) }}</textarea>
+                        <div class="mb-3">
+                            <label for="description" class="form-label fw-bold">Deskripsi</label>
+                            <textarea name="description" id="description" rows="3" class="form-control">{{ old('description', $menu->description) }}</textarea>
                             @error('description')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                <div class="text-danger small mt-1">{{ $message }}</div>
                             @enderror
                         </div>
 
                         <!-- Price -->
-                        <div class="mb-4">
-                            <label for="price" class="block text-sm font-medium text-gray-700">Harga *</label>
-                            <input type="number" name="price" id="price" value="{{ old('price', $menu->price) }}" step="0.01" min="0" required
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <div class="mb-3">
+                            <label for="price" class="form-label fw-bold">Harga <span class="text-danger">*</span></label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text">Rp</span>
+                                <input type="number" name="price" id="price" value="{{ old('price', $menu->price) }}" step="0.01" min="0" required class="form-control">
+                            </div>
                             @error('price')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                <div class="text-danger small mt-1">{{ $message }}</div>
                             @enderror
                         </div>
 
                         <!-- Stock -->
-                        <div class="mb-4">
-                            <label for="stock" class="block text-sm font-medium text-gray-700">Stok</label>
-                            <input type="number" name="stock" id="stock" value="{{ old('stock', $menu->stock) }}" min="0"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <div class="mb-3">
+                            <label for="stock" class="form-label fw-bold">Stok</label>
+                            <input type="number" name="stock" id="stock" value="{{ old('stock', $menu->stock) }}" min="0" class="form-control form-control-lg">
                             @error('stock')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                <div class="text-danger small mt-1">{{ $message }}</div>
                             @enderror
                         </div>
 
                         <!-- Image -->
-                        <div class="mb-4">
-                            <label for="image" class="block text-sm font-medium text-gray-700">Gambar</label>
+                        <div class="mb-3">
+                            <label for="image" class="form-label fw-bold">Gambar</label>
                             @if($menu->image)
                                 <div class="mb-2">
-                                    <img src="{{ Storage::url($menu->image) }}" alt="{{ $menu->name }}" class="h-32 w-32 object-cover rounded">
+                                    <img src="{{ Storage::url($menu->image) }}" alt="{{ $menu->name }}" class="img-thumbnail" style="max-width: 200px; max-height: 200px;">
                                 </div>
                             @endif
-                            <input type="file" name="image" id="image" accept="image/*"
-                                class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                            <input type="file" name="image" id="image" accept="image/*" class="form-control form-control-lg">
                             @error('image')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                <div class="text-danger small mt-1">{{ $message }}</div>
                             @enderror
-                            <div id="image-preview" class="mt-2"></div>
+                            <div id="image-preview" class="mt-3"></div>
                         </div>
 
                         <!-- Is Available -->
                         <div class="mb-4">
-                            <label class="flex items-center">
-                                <input type="checkbox" name="is_available" value="1" {{ old('is_available', $menu->is_available) ? 'checked' : '' }}
-                                    class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500">
-                                <span class="ml-2 text-sm text-gray-600">Tersedia</span>
-                            </label>
+                            <div class="form-check form-switch">
+                                <input type="checkbox" name="is_available" value="1" id="is_available" {{ old('is_available', $menu->is_available) ? 'checked' : '' }} class="form-check-input" role="switch">
+                                <label class="form-check-label fw-bold" for="is_available">Tersedia</label>
+                            </div>
                         </div>
 
                         <!-- Submit Button -->
-                        <div class="flex items-center justify-end mt-4">
-                            <a href="{{ route('menus.index') }}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded mr-3">
-                                Batal
+                        <div class="d-flex justify-content-end gap-3 pt-3 border-top">
+                            <a href="{{ route('admin.menus.index') }}" class="btn btn-secondary btn-lg">
+                                <i class="bi bi-x-circle me-2"></i>Batal
                             </a>
-                            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                                Update
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-check-circle me-2"></i>Update Menu
                             </button>
                         </div>
                     </form>
@@ -118,7 +114,7 @@
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     const preview = document.getElementById('image-preview');
-                    preview.innerHTML = '<img src="' + e.target.result + '" class="h-32 w-32 object-cover rounded">';
+                    preview.innerHTML = '<img src="' + e.target.result + '" class="img-thumbnail" style="max-width: 200px; max-height: 200px;">';
                 };
                 reader.readAsDataURL(file);
             }
