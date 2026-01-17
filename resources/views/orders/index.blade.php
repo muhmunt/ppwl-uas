@@ -1,242 +1,177 @@
-@if(auth()->user()->role === 'admin')
-    <x-admin-layout>
-        <x-slot name="header">
-            <div class="d-flex justify-content-between align-items-center">
-                <h2 class="text-white fw-bold mb-0">
-                    <i class="bi bi-receipt me-2"></i>{{ __('Manajemen Pesanan') }}
-                </h2>
-                <a href="{{ route('admin.orders.create') }}" class="btn btn-light">
-                    <i class="bi bi-plus-circle me-2"></i>Buat Pesanan Baru
-                </a>
-            </div>
-        </x-slot>
+@php
+    $isAdmin = auth()->user()->role === 'admin';
+    $routePrefix = $isAdmin ? 'admin.' : '';
+@endphp
 
-        @if(session('success'))
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+<x-app-layout>
+    <x-slot name="header">
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">Manajemen Pesanan</h1>
+                <p class="page-subtitle">Kelola semua pesanan pelanggan</p>
             </div>
+            <x-ui.button href="{{ route($routePrefix . 'orders.create') }}" variant="primary">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                Buat Pesanan Baru
+            </x-ui.button>
+        </div>
+    </x-slot>
+
+    {{-- Filters --}}
+    <x-ui.card class="mb-6">
+        <form method="GET" action="{{ route($routePrefix . 'orders.index') }}">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                <x-ui.input type="text" name="search" :value="request('search')" placeholder="Cari nomor pesanan..." />
+
+                <x-ui.select name="status" placeholder="Semua Status">
+                    <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
+                    <option value="processing" {{ request('status') == 'processing' ? 'selected' : '' }}>Processing
+                    </option>
+                    <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completed</option>
+                    <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                </x-ui.select>
+
+                <x-ui.input type="date" name="date" :value="request('date')" />
+
+                <x-ui.button type="submit" variant="secondary">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                    </svg>
+                    Filter
+                </x-ui.button>
+
+                @if(request('search') || request('status') || request('date'))
+                    <x-ui.button href="{{ route($routePrefix . 'orders.index') }}" variant="ghost">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        Reset
+                    </x-ui.button>
+                @endif
+            </div>
+        </form>
+    </x-ui.card>
+
+    {{-- Orders Table --}}
+    <x-ui.card :padding="false">
+        <x-ui.table>
+            <x-slot name="head">
+                <th>No. Pesanan</th>
+                <th>Pelanggan</th>
+                <th>Meja</th>
+                <th>Total</th>
+                <th>Status</th>
+                @if($isAdmin)
+                    <th>Kasir</th>
+                @endif
+                <th class="text-right">Aksi</th>
+            </x-slot>
+
+            @forelse($orders as $order)
+                <tr>
+                    <td>
+                        <span class="font-medium text-slate-900">{{ $order->order_number }}</span>
+                    </td>
+                    <td>{{ $order->customer_name ?? '-' }}</td>
+                    <td>{{ $order->table_number ?? '-' }}</td>
+                    <td>
+                        <span class="font-semibold text-emerald-600">
+                            Rp {{ number_format($order->total_price, 0, ',', '.') }}
+                        </span>
+                    </td>
+                    <td>
+                        @php
+                            $statusType = match ($order->status) {
+                                'pending' => 'warning',
+                                'processing' => 'info',
+                                'completed' => 'success',
+                                'cancelled' => 'danger',
+                                default => 'neutral',
+                            };
+                        @endphp
+                        <x-ui.badge :type="$statusType">
+                            {{ ucfirst($order->status) }}
+                        </x-ui.badge>
+                    </td>
+                    @if($isAdmin)
+                        <td class="text-slate-600">{{ $order->user->name }}</td>
+                    @endif
+                    <td>
+                        <div class="flex items-center justify-end gap-1">
+                            {{-- View --}}
+                            <x-ui.button href="{{ route($routePrefix . 'orders.show', $order) }}" variant="ghost" size="sm"
+                                title="Lihat">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                            </x-ui.button>
+
+                            @if($order->status === 'pending')
+                                {{-- Edit --}}
+                                <x-ui.button href="{{ route($routePrefix . 'orders.edit', $order) }}" variant="ghost" size="sm"
+                                    title="Edit">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                    </svg>
+                                </x-ui.button>
+
+                                @if($isAdmin)
+                                    {{-- Delete --}}
+                                    <form action="{{ route('admin.orders.destroy', $order) }}" method="POST" class="inline"
+                                        onsubmit="return confirm('Apakah Anda yakin ingin menghapus pesanan ini?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <x-ui.button type="submit" variant="ghost" size="sm" title="Hapus"
+                                            class="text-red-600 hover:text-red-700 hover:bg-red-50">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                        </x-ui.button>
+                                    </form>
+                                @endif
+                            @endif
+
+                            {{-- Print --}}
+                            <x-ui.button href="{{ route($routePrefix . 'orders.print', $order) }}" variant="ghost" size="sm"
+                                target="_blank" title="Print">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                                </svg>
+                            </x-ui.button>
+                        </div>
+                    </td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="{{ $isAdmin ? 7 : 6 }}" class="p-0">
+                        <x-ui.empty-state icon="cart" title="Tidak ada pesanan"
+                            description="Belum ada pesanan yang ditemukan. Buat pesanan baru untuk memulai.">
+                            <x-slot name="action">
+                                <x-ui.button href="{{ route($routePrefix . 'orders.create') }}" variant="primary" size="sm">
+                                    Buat Pesanan Baru
+                                </x-ui.button>
+                            </x-slot>
+                        </x-ui.empty-state>
+                    </td>
+                </tr>
+            @endforelse
+        </x-ui.table>
+
+        {{-- Pagination --}}
+        @if($orders->hasPages())
+            <x-slot name="footer">
+                {{ $orders->links() }}
+            </x-slot>
         @endif
-
-        <!-- Filters -->
-        <div class="card border-0 shadow-sm mb-4">
-            <div class="card-body">
-                <form method="GET" action="{{ route('admin.orders.index') }}" class="row g-3">
-                    <div class="col-12 col-md-4">
-                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nomor pesanan..." 
-                            class="form-control">
-                    </div>
-                    <div class="col-12 col-md-3">
-                        <select name="status" class="form-select">
-                            <option value="">Semua Status</option>
-                            <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
-                            <option value="processing" {{ request('status') == 'processing' ? 'selected' : '' }}>Processing</option>
-                            <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completed</option>
-                            <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
-                        </select>
-                    </div>
-                    <div class="col-12 col-md-3">
-                        <input type="date" name="date" value="{{ request('date') }}" class="form-control">
-                    </div>
-                    <div class="col-12 col-md-2">
-                        <button type="submit" class="btn btn-secondary w-100">
-                            <i class="bi bi-funnel me-1"></i>Filter
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <!-- Orders Table -->
-        <div class="card border-0 shadow-sm">
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th>No. Pesanan</th>
-                                <th>Pelanggan</th>
-                                <th>Meja</th>
-                                <th>Total</th>
-                                <th>Status</th>
-                                <th>Kasir</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($orders as $order)
-                                <tr>
-                                    <td><strong>{{ $order->order_number }}</strong></td>
-                                    <td>{{ $order->customer_name ?? '-' }}</td>
-                                    <td>{{ $order->table_number ?? '-' }}</td>
-                                    <td class="fw-bold text-success">Rp {{ number_format($order->total_price, 0, ',', '.') }}</td>
-                                    <td>
-                                        @php
-                                            $statusClasses = [
-                                                'pending' => 'bg-warning',
-                                                'processing' => 'bg-info',
-                                                'completed' => 'bg-success',
-                                                'cancelled' => 'bg-danger',
-                                            ];
-                                            $statusClass = $statusClasses[$order->status] ?? 'bg-secondary';
-                                        @endphp
-                                        <span class="badge {{ $statusClass }}">{{ ucfirst($order->status) }}</span>
-                                    </td>
-                                    <td>{{ $order->user->name }}</td>
-                                    <td>
-                                        <div class="btn-group" role="group">
-                                            <a href="{{ route('admin.orders.show', $order) }}" class="btn btn-sm btn-info" title="Lihat">
-                                                <i class="bi bi-eye"></i>
-                                            </a>
-                                            @if($order->status === 'pending')
-                                                <a href="{{ route('admin.orders.edit', $order) }}" class="btn btn-sm btn-warning" title="Edit">
-                                                    <i class="bi bi-pencil"></i>
-                                                </a>
-                                                <form action="{{ route('admin.orders.destroy', $order) }}" method="POST" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus pesanan ini?');">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="btn btn-sm btn-danger" title="Hapus">
-                                                        <i class="bi bi-trash"></i>
-                                                    </button>
-                                                </form>
-                                            @endif
-                                            <a href="{{ route('admin.orders.print', $order) }}" class="btn btn-sm btn-primary" target="_blank" title="Print">
-                                                <i class="bi bi-printer"></i>
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="7" class="text-center text-muted py-4">
-                                        <i class="bi bi-inbox fs-1 d-block mb-2"></i>
-                                        Tidak ada pesanan ditemukan.
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-                <div class="card-footer bg-white border-0">
-                    {{ $orders->links() }}
-                </div>
-            </div>
-        </div>
-    </x-admin-layout>
-@else
-    <x-kasir-layout>
-        <x-slot name="header">
-            <div class="d-flex justify-content-between align-items-center">
-                <h2 class="text-white fw-bold mb-0">
-                    <i class="bi bi-receipt me-2"></i>{{ __('Manajemen Pesanan') }}
-                </h2>
-                <a href="{{ route('orders.create') }}" class="btn btn-light">
-                    <i class="bi bi-plus-circle me-2"></i>Buat Pesanan Baru
-                </a>
-            </div>
-        </x-slot>
-
-        @if(session('success'))
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        @endif
-
-        <!-- Filters -->
-        <div class="card border-0 shadow-sm mb-4">
-            <div class="card-body">
-                <form method="GET" action="{{ route('orders.index') }}" class="row g-3">
-                    <div class="col-12 col-md-4">
-                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nomor pesanan..." 
-                            class="form-control">
-                    </div>
-                    <div class="col-12 col-md-3">
-                        <select name="status" class="form-select">
-                            <option value="">Semua Status</option>
-                            <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
-                            <option value="processing" {{ request('status') == 'processing' ? 'selected' : '' }}>Processing</option>
-                            <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completed</option>
-                            <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
-                        </select>
-                    </div>
-                    <div class="col-12 col-md-3">
-                        <input type="date" name="date" value="{{ request('date') }}" class="form-control">
-                    </div>
-                    <div class="col-12 col-md-2">
-                        <button type="submit" class="btn btn-secondary w-100">
-                            <i class="bi bi-funnel me-1"></i>Filter
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <!-- Orders Table -->
-        <div class="card border-0 shadow-sm">
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th>No. Pesanan</th>
-                                <th>Pelanggan</th>
-                                <th>Meja</th>
-                                <th>Total</th>
-                                <th>Status</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($orders as $order)
-                                <tr>
-                                    <td><strong>{{ $order->order_number }}</strong></td>
-                                    <td>{{ $order->customer_name ?? '-' }}</td>
-                                    <td>{{ $order->table_number ?? '-' }}</td>
-                                    <td class="fw-bold text-success">Rp {{ number_format($order->total_price, 0, ',', '.') }}</td>
-                                    <td>
-                                        @php
-                                            $statusClasses = [
-                                                'pending' => 'bg-warning',
-                                                'processing' => 'bg-info',
-                                                'completed' => 'bg-success',
-                                                'cancelled' => 'bg-danger',
-                                            ];
-                                            $statusClass = $statusClasses[$order->status] ?? 'bg-secondary';
-                                        @endphp
-                                        <span class="badge {{ $statusClass }}">{{ ucfirst($order->status) }}</span>
-                                    </td>
-                                    <td>
-                                        <div class="btn-group" role="group">
-                                            <a href="{{ route('orders.show', $order) }}" class="btn btn-sm btn-info" title="Lihat">
-                                                <i class="bi bi-eye"></i>
-                                            </a>
-                                            @if($order->status === 'pending')
-                                                <a href="{{ route('orders.edit', $order) }}" class="btn btn-sm btn-warning" title="Edit">
-                                                    <i class="bi bi-pencil"></i>
-                                                </a>
-                                            @endif
-                                            <a href="{{ route('orders.print', $order) }}" class="btn btn-sm btn-primary" target="_blank" title="Print">
-                                                <i class="bi bi-printer"></i>
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="6" class="text-center text-muted py-4">
-                                        <i class="bi bi-inbox fs-1 d-block mb-2"></i>
-                                        Tidak ada pesanan ditemukan.
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-                <div class="card-footer bg-white border-0">
-                    {{ $orders->links() }}
-                </div>
-            </div>
-        </div>
-    </x-kasir-layout>
-@endif
+    </x-ui.card>
+</x-app-layout>

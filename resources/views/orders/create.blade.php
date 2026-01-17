@@ -1,385 +1,289 @@
-@if(auth()->user()->role === 'admin')
-    <x-admin-layout>
-        <x-slot name="header">
-            <h2 class="text-white fw-bold mb-0">
-                <i class="bi bi-plus-circle me-2"></i>{{ __('Buat Pesanan Baru') }}
-            </h2>
-        </x-slot>
+@php
+    $isAdmin = auth()->user()->role === 'admin';
+    $routePrefix = $isAdmin ? 'admin.' : '';
+@endphp
 
-        <div class="row g-4">
-            <!-- Menu Selection -->
-            <div class="col-12 col-lg-8">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-header bg-white border-0 py-3">
-                        <h5 class="mb-0 fw-bold">
-                            <i class="bi bi-menu-button-wide me-2"></i>Pilih Menu
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        @foreach($categories as $category)
-                            @if($category->menus->count() > 0)
-                                <div class="mb-5">
-                                    <h6 class="fw-bold mb-3 text-uppercase text-primary">{{ $category->name }}</h6>
-                                    <div class="row g-3">
-                                        @foreach($category->menus as $menu)
-                                            @if($menu->is_available)
-                                                <div class="col-6 col-md-4">
-                                                    <div class="card border h-100">
-                                                        @if($menu->image)
-                                                            <img src="{{ Storage::url($menu->image) }}" alt="{{ $menu->name }}" class="card-img-top" style="height: 150px; object-fit: cover;">
-                                                        @else
-                                                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 150px;">
-                                                                <i class="bi bi-image text-muted fs-1"></i>
-                                                            </div>
-                                                        @endif
-                                                        <div class="card-body p-3">
-                                                            <h6 class="card-title fw-bold mb-1">{{ $menu->name }}</h6>
-                                                            <p class="card-text text-success fw-bold mb-2">Rp {{ number_format($menu->price, 0, ',', '.') }}</p>
-                                                            <button type="button" onclick="addToCart({{ $menu->id }}, '{{ $menu->name }}', {{ $menu->price }})" 
-                                                                class="btn btn-primary btn-sm w-100">
-                                                                <i class="bi bi-plus-circle me-1"></i>Tambah
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            @endif
-                                        @endforeach
-                                    </div>
-                                </div>
-                            @endif
-                        @endforeach
-                    </div>
-                </div>
-            </div>
-
-            <!-- Cart -->
-            <div class="col-12 col-lg-4">
-                <div class="card border-0 shadow-sm sticky-top" style="top: 20px;">
-                    <div class="card-header bg-white border-0 py-3">
-                        <h5 class="mb-0 fw-bold">
-                            <i class="bi bi-cart me-2"></i>Keranjang
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <form method="POST" action="{{ route('admin.orders.store') }}" id="orderForm">
-                            @csrf
-                            
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Nama Pelanggan</label>
-                                <input type="text" name="customer_name" value="{{ old('customer_name') }}" class="form-control">
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Nomor Meja</label>
-                                <input type="text" name="table_number" value="{{ old('table_number') }}" class="form-control">
-                            </div>
-
-                            <div id="cart-items" class="mb-3 border rounded p-2" style="min-height: 100px;">
-                                <p class="text-muted small mb-0 text-center">Keranjang kosong</p>
-                            </div>
-
-                            <div class="mb-3 border-top pt-3">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <span class="fw-bold">Total:</span>
-                                    <span id="total-price" class="fw-bold text-success fs-5">Rp 0</span>
-                                </div>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Catatan</label>
-                                <textarea name="notes" rows="3" class="form-control">{{ old('notes') }}</textarea>
-                            </div>
-
-                            <div class="d-grid gap-2">
-                                <a href="{{ route('admin.orders.index') }}" class="btn btn-secondary">
-                                    <i class="bi bi-x-circle me-2"></i>Batal
-                                </a>
-                                <button type="submit" class="btn btn-success">
-                                    <i class="bi bi-check-circle me-2"></i>Buat Pesanan
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
+<x-app-layout>
+    <x-slot name="header">
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">Buat Pesanan Baru</h1>
+                <p class="page-subtitle">Pilih menu dan tambahkan ke keranjang</p>
             </div>
         </div>
+    </x-slot>
 
-        <script>
-            let cart = [];
-            const menuPrices = {!! json_encode($categories->flatMap->menus->pluck('price', 'id')) !!};
+    {{-- Stock Validation Errors --}}
+    @if($errors->any())
+        <div class="mb-6">
+            <x-ui.alert type="danger">
+                <strong>Gagal membuat pesanan:</strong>
+                <ul class="mt-2 list-disc list-inside">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </x-ui.alert>
+        </div>
+    @endif
 
-            function addToCart(menuId, menuName, price) {
-                const existing = cart.find(item => item.menu_id === menuId);
-                if (existing) {
-                    existing.quantity++;
-                } else {
-                    cart.push({ menu_id: menuId, name: menuName, price: price, quantity: 1 });
-                }
-                updateCart();
-            }
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {{-- Menu Selection --}}
+        <div class="lg:col-span-2 space-y-6">
+            @foreach($categories as $category)
+                @if($category->menus->where('is_available', true)->count() > 0)
+                    <x-ui.card>
+                        <x-slot name="header">
+                            <h3 class="font-semibold text-slate-900">{{ $category->name }}</h3>
+                        </x-slot>
 
-            function removeFromCart(index) {
-                cart.splice(index, 1);
-                updateCart();
-            }
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                            @foreach($category->menus->where('is_available', true) as $menu)
+                                @php
+                                    $stockStatus = $menu->getStockStatus();
+                                    $isOutOfStock = $stockStatus === 'out_of_stock';
+                                    $isLowStock = $stockStatus === 'low_stock';
+                                @endphp
+                                <div
+                                    class="group relative bg-slate-50 rounded-xl overflow-hidden border border-slate-100 hover:border-rose-200 hover:shadow-soft transition-all {{ $isOutOfStock ? 'opacity-60' : '' }}">
+                                    @if($menu->image)
+                                        <img src="{{ Storage::url($menu->image) }}" alt="{{ $menu->name }}"
+                                            class="w-full h-32 object-cover {{ $isOutOfStock ? 'grayscale' : '' }}">
+                                    @else
+                                        <div class="w-full h-32 bg-slate-100 flex items-center justify-center">
+                                            <svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                            </svg>
+                                        </div>
+                                    @endif
 
-            function updateQuantity(index, change) {
-                cart[index].quantity += change;
-                if (cart[index].quantity <= 0) {
-                    cart.splice(index, 1);
-                }
-                updateCart();
-            }
+                                    {{-- Stock Badge --}}
+                                    <div class="absolute top-2 right-2">
+                                        @if($isOutOfStock)
+                                            <span
+                                                class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">
+                                                Habis
+                                            </span>
+                                        @elseif($isLowStock)
+                                            <span
+                                                class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
+                                                Sisa {{ $menu->stock }}
+                                            </span>
+                                        @endif
+                                    </div>
 
-            function updateCart() {
-                const cartItems = document.getElementById('cart-items');
-                const totalPrice = document.getElementById('total-price');
-                const form = document.getElementById('orderForm');
-                
-                if (cart.length === 0) {
-                    cartItems.innerHTML = '<p class="text-muted small mb-0 text-center">Keranjang kosong</p>';
-                    totalPrice.textContent = 'Rp 0';
-                    
-                    document.querySelectorAll('input[name^="items"]').forEach(input => input.remove());
-                    return;
-                }
+                                    <div class="p-3">
+                                        <h4 class="font-medium text-slate-900 text-sm truncate">{{ $menu->name }}</h4>
+                                        <div class="flex items-center justify-between mt-1">
+                                            <p class="text-emerald-600 font-semibold text-sm">Rp
+                                                {{ number_format($menu->price, 0, ',', '.') }}</p>
+                                            <span class="text-xs text-slate-400">Stok: {{ $menu->stock }}</span>
+                                        </div>
 
-                let html = '';
-                let total = 0;
-                let itemsInput = '';
-
-                cart.forEach((item, index) => {
-                    const subtotal = item.price * item.quantity;
-                    total += subtotal;
-                    
-                    html += `
-                        <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
-                            <div class="flex-grow-1">
-                                <p class="mb-0 small fw-bold">${item.name}</p>
-                                <p class="mb-0 text-muted small">Rp ${item.price.toLocaleString('id-ID')} x ${item.quantity}</p>
-                            </div>
-                            <div class="d-flex align-items-center gap-1">
-                                <button type="button" onclick="updateQuantity(${index}, -1)" class="btn btn-sm btn-outline-secondary">-</button>
-                                <span class="small px-2">${item.quantity}</span>
-                                <button type="button" onclick="updateQuantity(${index}, 1)" class="btn btn-sm btn-outline-secondary">+</button>
-                                <button type="button" onclick="removeFromCart(${index})" class="btn btn-sm btn-outline-danger ms-2">×</button>
-                            </div>
-                        </div>
-                    `;
-
-                    itemsInput += `
-                        <input type="hidden" name="items[${index}][menu_id]" value="${item.menu_id}">
-                        <input type="hidden" name="items[${index}][quantity]" value="${item.quantity}">
-                        <input type="hidden" name="items[${index}][price]" value="${item.price}">
-                    `;
-                });
-
-                cartItems.innerHTML = html;
-                totalPrice.textContent = 'Rp ' + total.toLocaleString('id-ID');
-                
-                document.querySelectorAll('input[name^="items"]').forEach(input => input.remove());
-                form.insertAdjacentHTML('beforeend', itemsInput);
-            }
-
-            document.getElementById('orderForm').addEventListener('submit', function(e) {
-                if (cart.length === 0) {
-                    e.preventDefault();
-                    alert('Keranjang tidak boleh kosong!');
-                    return false;
-                }
-            });
-        </script>
-    </x-admin-layout>
-@else
-    <x-kasir-layout>
-        <x-slot name="header">
-            <h2 class="text-white fw-bold mb-0">
-                <i class="bi bi-plus-circle me-2"></i>{{ __('Buat Pesanan Baru') }}
-            </h2>
-        </x-slot>
-
-        <div class="row g-4">
-            <!-- Menu Selection -->
-            <div class="col-12 col-lg-8">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-header bg-white border-0 py-3">
-                        <h5 class="mb-0 fw-bold">
-                            <i class="bi bi-menu-button-wide me-2"></i>Pilih Menu
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        @foreach($categories as $category)
-                            @if($category->menus->count() > 0)
-                                <div class="mb-5">
-                                    <h6 class="fw-bold mb-3 text-uppercase text-primary">{{ $category->name }}</h6>
-                                    <div class="row g-3">
-                                        @foreach($category->menus as $menu)
-                                            @if($menu->is_available)
-                                                <div class="col-6 col-md-4">
-                                                    <div class="card border h-100">
-                                                        @if($menu->image)
-                                                            <img src="{{ Storage::url($menu->image) }}" alt="{{ $menu->name }}" class="card-img-top" style="height: 150px; object-fit: cover;">
-                                                        @else
-                                                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 150px;">
-                                                                <i class="bi bi-image text-muted fs-1"></i>
-                                                            </div>
-                                                        @endif
-                                                        <div class="card-body p-3">
-                                                            <h6 class="card-title fw-bold mb-1">{{ $menu->name }}</h6>
-                                                            <p class="card-text text-success fw-bold mb-2">Rp {{ number_format($menu->price, 0, ',', '.') }}</p>
-                                                            <button type="button" onclick="addToCart({{ $menu->id }}, '{{ $menu->name }}', {{ $menu->price }})" 
-                                                                class="btn btn-primary btn-sm w-100">
-                                                                <i class="bi bi-plus-circle me-1"></i>Tambah
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            @endif
-                                        @endforeach
+                                        @if($isOutOfStock)
+                                            <button type="button" disabled
+                                                class="mt-2 w-full btn btn-secondary btn-sm opacity-50 cursor-not-allowed">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M6 18L18 6M6 6l12 12" />
+                                                </svg>
+                                                Stok Habis
+                                            </button>
+                                        @else
+                                            <button type="button"
+                                                onclick="addToCart({{ $menu->id }}, '{{ addslashes($menu->name) }}', {{ $menu->price }}, {{ $menu->stock }})"
+                                                data-menu-id="{{ $menu->id }}" data-max-stock="{{ $menu->stock }}"
+                                                class="menu-add-btn mt-2 w-full btn btn-primary btn-sm">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M12 4v16m8-8H4" />
+                                                </svg>
+                                                Tambah
+                                            </button>
+                                        @endif
                                     </div>
                                 </div>
-                            @endif
-                        @endforeach
-                    </div>
-                </div>
-            </div>
-
-            <!-- Cart -->
-            <div class="col-12 col-lg-4">
-                <div class="card border-0 shadow-sm sticky-top" style="top: 20px;">
-                    <div class="card-header bg-white border-0 py-3">
-                        <h5 class="mb-0 fw-bold">
-                            <i class="bi bi-cart me-2"></i>Keranjang
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <form method="POST" action="{{ route('orders.store') }}" id="orderForm">
-                            @csrf
-                            
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Nama Pelanggan</label>
-                                <input type="text" name="customer_name" value="{{ old('customer_name') }}" class="form-control">
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Nomor Meja</label>
-                                <input type="text" name="table_number" value="{{ old('table_number') }}" class="form-control">
-                            </div>
-
-                            <div id="cart-items" class="mb-3 border rounded p-2" style="min-height: 100px;">
-                                <p class="text-muted small mb-0 text-center">Keranjang kosong</p>
-                            </div>
-
-                            <div class="mb-3 border-top pt-3">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <span class="fw-bold">Total:</span>
-                                    <span id="total-price" class="fw-bold text-success fs-5">Rp 0</span>
-                                </div>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Catatan</label>
-                                <textarea name="notes" rows="3" class="form-control">{{ old('notes') }}</textarea>
-                            </div>
-
-                            <div class="d-grid gap-2">
-                                <a href="{{ route('orders.index') }}" class="btn btn-secondary">
-                                    <i class="bi bi-x-circle me-2"></i>Batal
-                                </a>
-                                <button type="submit" class="btn btn-success">
-                                    <i class="bi bi-check-circle me-2"></i>Buat Pesanan
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
+                            @endforeach
+                        </div>
+                    </x-ui.card>
+                @endif
+            @endforeach
         </div>
 
-        <script>
-            let cart = [];
-            const menuPrices = {!! json_encode($categories->flatMap->menus->pluck('price', 'id')) !!};
+        {{-- Cart --}}
+        <div class="lg:col-span-1">
+            <div class="sticky top-6">
+                <x-ui.card>
+                    <x-slot name="header">
+                        <div class="flex items-center gap-2">
+                            <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                            <h3 class="font-semibold text-slate-900">Keranjang</h3>
+                        </div>
+                    </x-slot>
 
-            function addToCart(menuId, menuName, price) {
-                const existing = cart.find(item => item.menu_id === menuId);
-                if (existing) {
-                    existing.quantity++;
-                } else {
-                    cart.push({ menu_id: menuId, name: menuName, price: price, quantity: 1 });
-                }
-                updateCart();
-            }
+                    <form method="POST" action="{{ route($routePrefix . 'orders.store') }}" id="orderForm"
+                        class="space-y-4">
+                        @csrf
 
-            function removeFromCart(index) {
-                cart.splice(index, 1);
-                updateCart();
-            }
+                        <x-ui.input name="customer_name" label="Nama Pelanggan" :value="old('customer_name')"
+                            placeholder="Nama pelanggan" />
 
-            function updateQuantity(index, change) {
-                cart[index].quantity += change;
-                if (cart[index].quantity <= 0) {
-                    cart.splice(index, 1);
-                }
-                updateCart();
-            }
+                        <x-ui.input name="table_number" label="Nomor Meja" :value="old('table_number')"
+                            placeholder="Contoh: 5" />
 
-            function updateCart() {
-                const cartItems = document.getElementById('cart-items');
-                const totalPrice = document.getElementById('total-price');
-                const form = document.getElementById('orderForm');
-                
-                if (cart.length === 0) {
-                    cartItems.innerHTML = '<p class="text-muted small mb-0 text-center">Keranjang kosong</p>';
-                    totalPrice.textContent = 'Rp 0';
-                    
-                    document.querySelectorAll('input[name^="items"]').forEach(input => input.remove());
-                    return;
-                }
-
-                let html = '';
-                let total = 0;
-                let itemsInput = '';
-
-                cart.forEach((item, index) => {
-                    const subtotal = item.price * item.quantity;
-                    total += subtotal;
-                    
-                    html += `
-                        <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
-                            <div class="flex-grow-1">
-                                <p class="mb-0 small fw-bold">${item.name}</p>
-                                <p class="mb-0 text-muted small">Rp ${item.price.toLocaleString('id-ID')} x ${item.quantity}</p>
-                            </div>
-                            <div class="d-flex align-items-center gap-1">
-                                <button type="button" onclick="updateQuantity(${index}, -1)" class="btn btn-sm btn-outline-secondary">-</button>
-                                <span class="small px-2">${item.quantity}</span>
-                                <button type="button" onclick="updateQuantity(${index}, 1)" class="btn btn-sm btn-outline-secondary">+</button>
-                                <button type="button" onclick="removeFromCart(${index})" class="btn btn-sm btn-outline-danger ms-2">×</button>
+                        {{-- Cart Items --}}
+                        <div>
+                            <label class="form-label">Item Pesanan</label>
+                            <div id="cart-items"
+                                class="min-h-[100px] border border-slate-200 rounded-lg p-3 bg-slate-50">
+                                <p class="text-slate-400 text-sm text-center py-4">Keranjang kosong</p>
                             </div>
                         </div>
-                    `;
 
-                    itemsInput += `
-                        <input type="hidden" name="items[${index}][menu_id]" value="${item.menu_id}">
-                        <input type="hidden" name="items[${index}][quantity]" value="${item.quantity}">
-                        <input type="hidden" name="items[${index}][price]" value="${item.price}">
-                    `;
-                });
+                        {{-- Total --}}
+                        <div class="flex items-center justify-between py-3 border-t border-slate-200">
+                            <span class="font-medium text-slate-700">Total</span>
+                            <span id="total-price" class="text-xl font-bold text-emerald-600">Rp 0</span>
+                        </div>
 
-                cartItems.innerHTML = html;
-                totalPrice.textContent = 'Rp ' + total.toLocaleString('id-ID');
-                
-                document.querySelectorAll('input[name^="items"]').forEach(input => input.remove());
-                form.insertAdjacentHTML('beforeend', itemsInput);
+                        {{-- Notes --}}
+                        <div>
+                            <label class="form-label">Catatan</label>
+                            <textarea name="notes" rows="2" class="form-input"
+                                placeholder="Catatan tambahan...">{{ old('notes') }}</textarea>
+                        </div>
+
+                        {{-- Buttons --}}
+                        <div class="flex gap-2">
+                            <x-ui.button href="{{ route($routePrefix . 'orders.index') }}" variant="ghost"
+                                class="flex-1">
+                                Batal
+                            </x-ui.button>
+                            <x-ui.button type="submit" variant="primary" class="flex-1">
+                                Buat Pesanan
+                            </x-ui.button>
+                        </div>
+                    </form>
+                </x-ui.card>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Store menu stock limits
+        const menuStock = {
+            @foreach($categories as $category)
+                @foreach($category->menus->where('is_available', true) as $menu)
+                    {{ $menu->id }}: {{ $menu->stock }},
+                @endforeach
+            @endforeach
+        };
+
+        let cart = [];
+
+        function addToCart(menuId, menuName, price, maxStock) {
+            const existing = cart.find(item => item.menu_id === menuId);
+            const currentQty = existing ? existing.quantity : 0;
+
+            // Check if adding would exceed stock
+            if (currentQty >= maxStock) {
+                alert(`Stok "${menuName}" tidak mencukupi. Maksimal: ${maxStock}`);
+                return;
             }
 
-            document.getElementById('orderForm').addEventListener('submit', function(e) {
-                if (cart.length === 0) {
-                    e.preventDefault();
-                    alert('Keranjang tidak boleh kosong!');
-                    return false;
-                }
+            if (existing) {
+                existing.quantity++;
+            } else {
+                cart.push({ menu_id: menuId, name: menuName, price: price, quantity: 1, maxStock: maxStock });
+            }
+            updateCart();
+        }
+
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            updateCart();
+        }
+
+        function updateQuantity(index, change) {
+            const item = cart[index];
+            const newQty = item.quantity + change;
+
+            // Check stock limit when increasing
+            if (change > 0 && newQty > item.maxStock) {
+                alert(`Stok "${item.name}" tidak mencukupi. Maksimal: ${item.maxStock}`);
+                return;
+            }
+
+            item.quantity = newQty;
+            if (item.quantity <= 0) {
+                cart.splice(index, 1);
+            }
+            updateCart();
+        }
+
+        function updateCart() {
+            const cartItems = document.getElementById('cart-items');
+            const totalPrice = document.getElementById('total-price');
+            const form = document.getElementById('orderForm');
+
+            if (cart.length === 0) {
+                cartItems.innerHTML = '<p class="text-slate-400 text-sm text-center py-4">Keranjang kosong</p>';
+                totalPrice.textContent = 'Rp 0';
+                document.querySelectorAll('input[name^="items"]').forEach(input => input.remove());
+                return;
+            }
+
+            let html = '';
+            let total = 0;
+            let itemsInput = '';
+
+            cart.forEach((item, index) => {
+                const subtotal = item.price * item.quantity;
+                total += subtotal;
+                const isAtMax = item.quantity >= item.maxStock;
+
+                html += `
+                    <div class="flex items-center justify-between py-2 ${index < cart.length - 1 ? 'border-b border-slate-200' : ''}">
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-slate-900 truncate">${item.name}</p>
+                            <p class="text-xs text-slate-500">Rp ${item.price.toLocaleString('id-ID')} × ${item.quantity}</p>
+                            ${isAtMax ? '<p class="text-xs text-amber-600">Maks. stok tercapai</p>' : ''}
+                        </div>
+                        <div class="flex items-center gap-1 ml-2">
+                            <button type="button" onclick="updateQuantity(${index}, -1)" class="w-6 h-6 flex items-center justify-center rounded bg-slate-200 text-slate-600 hover:bg-slate-300 text-sm">−</button>
+                            <span class="w-6 text-center text-sm">${item.quantity}</span>
+                            <button type="button" onclick="updateQuantity(${index}, 1)" class="w-6 h-6 flex items-center justify-center rounded ${isAtMax ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'} text-sm" ${isAtMax ? 'disabled' : ''}>+</button>
+                            <button type="button" onclick="removeFromCart(${index})" class="w-6 h-6 flex items-center justify-center rounded text-red-500 hover:bg-red-50 ml-1">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                itemsInput += `
+                    <input type="hidden" name="items[${index}][menu_id]" value="${item.menu_id}">
+                    <input type="hidden" name="items[${index}][quantity]" value="${item.quantity}">
+                    <input type="hidden" name="items[${index}][price]" value="${item.price}">
+                `;
             });
-        </script>
-    </x-kasir-layout>
-@endif
+
+            cartItems.innerHTML = html;
+            totalPrice.textContent = 'Rp ' + total.toLocaleString('id-ID');
+
+            document.querySelectorAll('input[name^="items"]').forEach(input => input.remove());
+            form.insertAdjacentHTML('beforeend', itemsInput);
+        }
+
+        document.getElementById('orderForm').addEventListener('submit', function (e) {
+            if (cart.length === 0) {
+                e.preventDefault();
+                alert('Keranjang tidak boleh kosong!');
+                return false;
+            }
+        });
+    </script>
+</x-app-layout>

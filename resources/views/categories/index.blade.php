@@ -1,132 +1,151 @@
-<x-admin-layout>
+<x-app-layout>
     <x-slot name="header">
-        <div class="d-flex justify-content-between align-items-center">
-            <h2 class="text-white fw-bold mb-0">
-                <i class="bi bi-tags me-2"></i>{{ __('Manajemen Kategori') }}
-            </h2>
-            <a href="{{ route('admin.categories.create') }}" class="btn btn-light">
-                <i class="bi bi-plus-circle me-2"></i>Tambah Kategori
-            </a>
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">Manajemen Kategori</h1>
+                <p class="page-subtitle">Kelola kategori menu</p>
+            </div>
+            <x-ui.button href="{{ route('admin.categories.create') }}" variant="primary">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                Tambah Kategori
+            </x-ui.button>
         </div>
     </x-slot>
 
-    <!-- Success/Error Messages -->
-    @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    @endif
+    {{-- Filters --}}
+    <x-ui.card class="mb-6">
+        <form method="GET" action="{{ route('admin.categories.index') }}">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <x-ui.input type="text" name="search" :value="request('search')" placeholder="Cari kategori..."
+                    class="lg:col-span-2" />
 
-    @if(session('error'))
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <i class="bi bi-exclamation-triangle me-2"></i>{{ session('error') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    @endif
+                <x-ui.select name="status" placeholder="Semua Status">
+                    <option value="1" {{ request('status') == '1' ? 'selected' : '' }}>Aktif</option>
+                    <option value="0" {{ request('status') == '0' ? 'selected' : '' }}>Tidak Aktif</option>
+                </x-ui.select>
 
-    <!-- Search and Filter -->
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body">
-            <form method="GET" action="{{ route('admin.categories.index') }}" class="row g-3">
-                <div class="col-12 col-md-6">
-                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari kategori..." 
-                        class="form-control">
-                </div>
-                <div class="col-12 col-md-4">
-                    <select name="status" class="form-select">
-                        <option value="">Semua Status</option>
-                        <option value="1" {{ request('status') == '1' ? 'selected' : '' }}>Aktif</option>
-                        <option value="0" {{ request('status') == '0' ? 'selected' : '' }}>Tidak Aktif</option>
-                    </select>
-                </div>
-                <div class="col-12 col-md-2">
-                    <button type="submit" class="btn btn-secondary w-100">
-                        <i class="bi bi-funnel me-1"></i>Filter
-                    </button>
-                </div>
-                @if(request('search') || request('status') !== '')
-                    <div class="col-12 col-md-2">
-                        <a href="{{ route('admin.categories.index') }}" class="btn btn-outline-secondary w-100">
-                            <i class="bi bi-x-circle me-1"></i>Reset
-                        </a>
-                    </div>
-                @endif
-            </form>
-        </div>
-    </div>
+                <div class="flex gap-2">
+                    <x-ui.button type="submit" variant="secondary" class="flex-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                        </svg>
+                        Filter
+                    </x-ui.button>
 
-    <!-- Categories Table -->
-    <div class="card border-0 shadow-sm">
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Gambar</th>
-                            <th>Nama</th>
-                            <th>Deskripsi</th>
-                            <th>Status</th>
-                            <th>Urutan</th>
-                            <th>Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($categories as $category)
-                            <tr>
-                                <td>
-                                    @if($category->image)
-                                        <img src="{{ Storage::url($category->image) }}" alt="{{ $category->name }}" class="img-thumbnail" style="width: 80px; height: 80px; object-fit: cover;">
-                                    @else
-                                        <div class="bg-light d-flex align-items-center justify-content-center rounded" style="width: 80px; height: 80px;">
-                                            <i class="bi bi-image text-muted"></i>
-                                        </div>
-                                    @endif
-                                </td>
-                                <td><strong>{{ $category->name }}</strong></td>
-                                <td>{{ Str::limit($category->description, 50) }}</td>
-                                <td>
-                                    @if($category->is_active)
-                                        <span class="badge bg-success">Aktif</span>
-                                    @else
-                                        <span class="badge bg-danger">Tidak Aktif</span>
-                                    @endif
-                                </td>
-                                <td>{{ $category->sort_order }}</td>
-                                <td>
-                                    <div class="btn-group" role="group">
-                                        <a href="{{ route('admin.categories.show', $category) }}" class="btn btn-sm btn-info" title="Lihat">
-                                            <i class="bi bi-eye"></i>
-                                        </a>
-                                        <a href="{{ route('admin.categories.edit', $category) }}" class="btn btn-sm btn-primary" title="Edit">
-                                            <i class="bi bi-pencil"></i>
-                                        </a>
-                                        <form action="{{ route('admin.categories.destroy', $category) }}" method="POST" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus kategori ini?');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-danger" title="Hapus">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="6" class="text-center text-muted py-4">
-                                    <i class="bi bi-inbox fs-1 d-block mb-2"></i>
-                                    Tidak ada kategori ditemukan.
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+                    @if(request('search') || request('status') !== null)
+                        <x-ui.button href="{{ route('admin.categories.index') }}" variant="ghost">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </x-ui.button>
+                    @endif
+                </div>
             </div>
-            
-            <!-- Pagination -->
-            <div class="card-footer bg-white border-0">
+        </form>
+    </x-ui.card>
+
+    {{-- Categories Table --}}
+    <x-ui.card :padding="false">
+        <x-ui.table>
+            <x-slot name="head">
+                <th>Gambar</th>
+                <th>Nama</th>
+                <th>Deskripsi</th>
+                <th>Status</th>
+                <th>Urutan</th>
+                <th class="text-right">Aksi</th>
+            </x-slot>
+
+            @forelse($categories as $category)
+                <tr>
+                    <td>
+                        @if($category->image)
+                            <img src="{{ Storage::url($category->image) }}" alt="{{ $category->name }}"
+                                class="w-14 h-14 object-cover rounded-lg border border-slate-200">
+                        @else
+                            <div class="w-14 h-14 bg-slate-100 rounded-lg flex items-center justify-center">
+                                <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                        @endif
+                    </td>
+                    <td>
+                        <span class="font-medium text-slate-900">{{ $category->name }}</span>
+                    </td>
+                    <td class="text-slate-600 max-w-xs truncate">
+                        {{ Str::limit($category->description, 50) }}
+                    </td>
+                    <td>
+                        <x-ui.badge :type="$category->is_active ? 'success' : 'danger'">
+                            {{ $category->is_active ? 'Aktif' : 'Tidak Aktif' }}
+                        </x-ui.badge>
+                    </td>
+                    <td class="text-slate-600">{{ $category->sort_order }}</td>
+                    <td>
+                        <div class="flex items-center justify-end gap-1">
+                            {{-- View --}}
+                            <x-ui.button href="{{ route('admin.categories.show', $category) }}" variant="ghost" size="sm"
+                                title="Lihat">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                            </x-ui.button>
+
+                            {{-- Edit --}}
+                            <x-ui.button href="{{ route('admin.categories.edit', $category) }}" variant="ghost" size="sm"
+                                title="Edit">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                            </x-ui.button>
+
+                            {{-- Delete --}}
+                            <form action="{{ route('admin.categories.destroy', $category) }}" method="POST" class="inline"
+                                onsubmit="return confirm('Apakah Anda yakin ingin menghapus kategori ini?');">
+                                @csrf
+                                @method('DELETE')
+                                <x-ui.button type="submit" variant="ghost" size="sm" title="Hapus"
+                                    class="text-red-600 hover:text-red-700 hover:bg-red-50">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                </x-ui.button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="6" class="p-0">
+                        <x-ui.empty-state icon="folder" title="Tidak ada kategori"
+                            description="Belum ada kategori yang ditemukan. Tambah kategori baru untuk memulai.">
+                            <x-slot name="action">
+                                <x-ui.button href="{{ route('admin.categories.create') }}" variant="primary" size="sm">
+                                    Tambah Kategori Baru
+                                </x-ui.button>
+                            </x-slot>
+                        </x-ui.empty-state>
+                    </td>
+                </tr>
+            @endforelse
+        </x-ui.table>
+
+        {{-- Pagination --}}
+        @if($categories->hasPages())
+            <x-slot name="footer">
                 {{ $categories->links() }}
-            </div>
-        </div>
-    </div>
-</x-admin-layout>
+            </x-slot>
+        @endif
+    </x-ui.card>
+</x-app-layout>

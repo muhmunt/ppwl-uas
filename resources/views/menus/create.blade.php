@@ -1,117 +1,133 @@
-<x-admin-layout>
+<x-app-layout>
     <x-slot name="header">
-        <h2 class="text-white fw-bold mb-0">
-            <i class="bi bi-plus-circle me-2"></i>{{ __('Tambah Menu') }}
-        </h2>
-    </x-slot>
-
-    <div class="row justify-content-center">
-        <div class="col-12 col-lg-8">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <form method="POST" action="{{ route('admin.menus.store') }}" enctype="multipart/form-data">
-                        @csrf
-
-                        <!-- Category -->
-                        <div class="mb-3">
-                            <label for="category_id" class="form-label fw-bold">Kategori <span class="text-danger">*</span></label>
-                            <select name="category_id" id="category_id" required class="form-select form-select-lg">
-                                <option value="">Pilih Kategori</option>
-                                @foreach($categories as $category)
-                                    <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
-                                        {{ $category->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('category_id')
-                                <div class="text-danger small mt-1">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <!-- Name -->
-                        <div class="mb-3">
-                            <label for="name" class="form-label fw-bold">Nama Menu <span class="text-danger">*</span></label>
-                            <input type="text" name="name" id="name" value="{{ old('name') }}" required class="form-control form-control-lg">
-                            @error('name')
-                                <div class="text-danger small mt-1">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <!-- Description -->
-                        <div class="mb-3">
-                            <label for="description" class="form-label fw-bold">Deskripsi</label>
-                            <textarea name="description" id="description" rows="3" class="form-control">{{ old('description') }}</textarea>
-                            @error('description')
-                                <div class="text-danger small mt-1">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <!-- Price -->
-                        <div class="mb-3">
-                            <label for="price" class="form-label fw-bold">Harga <span class="text-danger">*</span></label>
-                            <div class="input-group input-group-lg">
-                                <span class="input-group-text">Rp</span>
-                                <input type="number" name="price" id="price" value="{{ old('price') }}" step="0.01" min="0" required class="form-control">
-                            </div>
-                            @error('price')
-                                <div class="text-danger small mt-1">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <!-- Stock -->
-                        <div class="mb-3">
-                            <label for="stock" class="form-label fw-bold">Stok</label>
-                            <input type="number" name="stock" id="stock" value="{{ old('stock', 0) }}" min="0" class="form-control form-control-lg">
-                            @error('stock')
-                                <div class="text-danger small mt-1">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <!-- Image -->
-                        <div class="mb-3">
-                            <label for="image" class="form-label fw-bold">Gambar</label>
-                            <input type="file" name="image" id="image" accept="image/*" class="form-control form-control-lg">
-                            @error('image')
-                                <div class="text-danger small mt-1">{{ $message }}</div>
-                            @enderror
-                            <div id="image-preview" class="mt-3"></div>
-                        </div>
-
-                        <!-- Is Available -->
-                        <div class="mb-4">
-                            <div class="form-check form-switch">
-                                <input type="checkbox" name="is_available" value="1" id="is_available" {{ old('is_available', true) ? 'checked' : '' }} class="form-check-input" role="switch">
-                                <label class="form-check-label fw-bold" for="is_available">Tersedia</label>
-                            </div>
-                        </div>
-
-                        <!-- Submit Button -->
-                        <div class="d-flex justify-content-end gap-3 pt-3 border-top">
-                            <a href="{{ route('admin.menus.index') }}" class="btn btn-secondary btn-lg">
-                                <i class="bi bi-x-circle me-2"></i>Batal
-                            </a>
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="bi bi-check-circle me-2"></i>Simpan Menu
-                            </button>
-                        </div>
-                    </form>
-                </div>
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">Tambah Menu</h1>
+                <p class="page-subtitle">Buat menu baru untuk dijual</p>
             </div>
         </div>
+    </x-slot>
+
+    <div class="max-w-2xl mx-auto">
+        <x-ui.card>
+            <form method="POST" action="{{ route('admin.menus.store') }}" enctype="multipart/form-data" class="space-y-5">
+                @csrf
+
+                <x-ui.select 
+                    name="category_id" 
+                    label="Kategori" 
+                    required 
+                    :error="$errors->first('category_id')"
+                    placeholder="Pilih Kategori"
+                >
+                    @foreach($categories as $category)
+                        <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
+                            {{ $category->name }}
+                        </option>
+                    @endforeach
+                </x-ui.select>
+
+                <x-ui.input 
+                    name="name" 
+                    label="Nama Menu" 
+                    :value="old('name')" 
+                    required 
+                    :error="$errors->first('name')"
+                    placeholder="Contoh: Nasi Goreng Spesial"
+                />
+
+                <div>
+                    <label class="form-label">Deskripsi</label>
+                    <textarea 
+                        name="description" 
+                        rows="3" 
+                        class="form-input"
+                        placeholder="Deskripsi menu (opsional)"
+                    >{{ old('description') }}</textarea>
+                    @error('description')
+                        <p class="form-error">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    <label class="form-label">Harga <span class="text-red-500">*</span></label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">Rp</span>
+                        <input 
+                            type="number" 
+                            name="price" 
+                            value="{{ old('price') }}" 
+                            step="100" 
+                            min="0" 
+                            required 
+                            class="form-input pl-10"
+                            placeholder="0"
+                        >
+                    </div>
+                    @error('price')
+                        <p class="form-error">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <x-ui.input 
+                    type="number" 
+                    name="stock" 
+                    label="Stok" 
+                    :value="old('stock', 0)" 
+                    min="0"
+                    :error="$errors->first('stock')"
+                />
+
+                <div>
+                    <label class="form-label">Gambar</label>
+                    <input 
+                        type="file" 
+                        name="image" 
+                        id="image" 
+                        accept="image/*" 
+                        class="form-input file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-rose-50 file:text-rose-600 file:font-medium hover:file:bg-rose-100"
+                    >
+                    @error('image')
+                        <p class="form-error">{{ $message }}</p>
+                    @enderror
+                    <div id="image-preview" class="mt-3"></div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <input 
+                        type="checkbox" 
+                        name="is_available" 
+                        value="1" 
+                        id="is_available" 
+                        {{ old('is_available', true) ? 'checked' : '' }}
+                        class="w-4 h-4 rounded border-slate-300 text-rose-600 focus:ring-rose-500"
+                    >
+                    <label for="is_available" class="text-sm font-medium text-slate-700">Tersedia untuk dijual</label>
+                </div>
+
+                <div class="flex gap-3 pt-4 border-t border-slate-200">
+                    <x-ui.button href="{{ route('admin.menus.index') }}" variant="ghost" class="flex-1">
+                        Batal
+                    </x-ui.button>
+                    <x-ui.button type="submit" variant="primary" class="flex-1">
+                        Simpan Menu
+                    </x-ui.button>
+                </div>
+            </form>
+        </x-ui.card>
     </div>
 
     <script>
-        // Image preview
         document.getElementById('image').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     const preview = document.getElementById('image-preview');
-                    preview.innerHTML = '<img src="' + e.target.result + '" class="img-thumbnail" style="max-width: 200px; max-height: 200px;">';
+                    preview.innerHTML = '<img src="' + e.target.result + '" class="w-32 h-32 object-cover rounded-lg border border-slate-200">';
                 };
                 reader.readAsDataURL(file);
             }
         });
     </script>
-</x-admin-layout>
+</x-app-layout>

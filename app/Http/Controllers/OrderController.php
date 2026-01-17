@@ -40,7 +40,7 @@ class OrderController extends Controller
         // Search by order number
         if ($request->has('search') && $request->search) {
             $query->where('order_number', 'like', '%' . $request->search . '%')
-                  ->orWhere('customer_name', 'like', '%' . $request->search . '%');
+                ->orWhere('customer_name', 'like', '%' . $request->search . '%');
         }
 
         $orders = $query->orderBy('created_at', 'desc')->paginate(15);
@@ -53,9 +53,11 @@ class OrderController extends Controller
      */
     public function create()
     {
-        $categories = Category::where('is_active', true)->with(['menus' => function($query) {
-            $query->where('is_available', true);
-        }])->orderBy('name')->get();
+        $categories = Category::where('is_active', true)->with([
+            'menus' => function ($query) {
+                $query->where('is_available', true);
+            }
+        ])->orderBy('name')->get();
 
         return view('orders.create', compact('categories'));
     }
@@ -90,9 +92,9 @@ class OrderController extends Controller
 
                 $totalPrice += $orderItem->subtotal;
 
-                // Update stock if available
-                $menu = Menu::find($item['menu_id']);
-                if ($menu && $menu->stock > 0) {
+                // Deduct stock with lock to prevent race conditions
+                $menu = Menu::lockForUpdate()->find($item['menu_id']);
+                if ($menu) {
                     $menu->stock -= $item['quantity'];
                     $menu->save();
                 }
@@ -143,9 +145,11 @@ class OrderController extends Controller
             abort(403, 'Unauthorized.');
         }
 
-        $categories = Category::where('is_active', true)->with(['menus' => function($query) {
-            $query->where('is_available', true);
-        }])->orderBy('name')->get();
+        $categories = Category::where('is_active', true)->with([
+            'menus' => function ($query) {
+                $query->where('is_available', true);
+            }
+        ])->orderBy('name')->get();
 
         $order->load('orderItems.menu');
 
@@ -175,10 +179,10 @@ class OrderController extends Controller
             $order->notes = $request->notes;
             $order->save();
 
-            // Restore stock from old items
+            // Restore stock from old items with lock
             foreach ($order->orderItems as $oldItem) {
-                $menu = $oldItem->menu;
-                if ($menu && $menu->stock >= 0) {
+                $menu = Menu::lockForUpdate()->find($oldItem->menu_id);
+                if ($menu) {
                     $menu->stock += $oldItem->quantity;
                     $menu->save();
                 }
@@ -201,9 +205,9 @@ class OrderController extends Controller
 
                 $totalPrice += $orderItem->subtotal;
 
-                // Update stock
-                $menu = Menu::find($item['menu_id']);
-                if ($menu && $menu->stock > 0) {
+                // Deduct stock with lock to prevent race conditions
+                $menu = Menu::lockForUpdate()->find($item['menu_id']);
+                if ($menu) {
                     $menu->stock -= $item['quantity'];
                     $menu->save();
                 }
@@ -242,10 +246,10 @@ class OrderController extends Controller
 
         DB::beginTransaction();
         try {
-            // Restore stock
+            // Restore stock with lock
             foreach ($order->orderItems as $item) {
-                $menu = $item->menu;
-                if ($menu && $menu->stock >= 0) {
+                $menu = Menu::lockForUpdate()->find($item->menu_id);
+                if ($menu) {
                     $menu->stock += $item->quantity;
                     $menu->save();
                 }
@@ -287,7 +291,7 @@ class OrderController extends Controller
     public function print(Order $order)
     {
         $order->load(['user', 'orderItems.menu']);
-        
+
         $pdf = Pdf::loadView('orders.receipt', compact('order'));
         return $pdf->download('order-' . $order->order_number . '.pdf');
     }
